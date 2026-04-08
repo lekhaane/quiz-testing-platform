@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: quiz-testing-platform
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
+    healthCheckPath: /health
+    envVars:
+      - key: QUIZ_SECRET_KEY
+        generateValue: true
+      - key: QUIZ_DATABASE_URI
+        fromDatabase:
+          name: quiz-testing-platform-db
+          property: connectionString
+
+databases:
+  - name: quiz-testing-platform-db
+    plan: free

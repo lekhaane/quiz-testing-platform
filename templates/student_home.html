@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Sinh Viên</title>
+    <style>
+        :root { --ink:#17324f; --muted:#5e7388; --accent:#cb5b3e; --accent-strong:#994128; --surface:rgba(255,255,255,.9); --surface-alt:rgba(255,255,255,.76); --line:rgba(23,50,79,.12); --font-ui:"Noto Sans","Segoe UI","Tahoma","Arial",sans-serif; --font-display:"Noto Sans","Segoe UI Semibold","Segoe UI","Tahoma","Arial",sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; font-family:var(--font-ui); color:var(--ink); text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; background:radial-gradient(circle at top right, rgba(203,91,62,.18), transparent 28%),radial-gradient(circle at bottom left, rgba(35,109,155,.16), transparent 34%),linear-gradient(145deg,#f7eee2,#dbe8f2); }
+        .page { max-width:1160px; margin:0 auto; padding:28px 18px 52px; }
+        .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
+        .brand { font-family:var(--font-display); font-size:1.35rem; font-weight:700; letter-spacing:.01em; }
+        .top-actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+        .topbar a,.identity-badge { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid var(--line); background:var(--surface-alt); color:var(--ink); text-decoration:none; font-weight:700; }
+        .hero { display:grid; grid-template-columns:1.12fr .88fr; gap:24px; align-items:start; }
+        .headline { padding-top:20px; }
+        .eyebrow { margin:0 0 12px; color:var(--accent-strong); letter-spacing:.08em; text-transform:uppercase; font-weight:800; }
+        h1 { margin:0 0 14px; font-family:var(--font-display); font-size:clamp(2.2rem,5vw,4rem); line-height:1.08; }
+        .lead { margin:0; max-width:640px; color:var(--muted); font-size:1.08rem; line-height:1.75; }
+        .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-top:28px; }
+        .card,.join-card { background:var(--surface); border-radius:28px; border:1px solid rgba(255,255,255,.78); box-shadow:0 18px 50px rgba(23,50,79,.12); backdrop-filter:blur(10px); }
+        .card { padding:20px; }
+        .card h3,.join-card h2 { margin-top:0; font-family:var(--font-display); }
+        .card p { margin:0; color:var(--muted); line-height:1.6; }
+        .join-card { padding:28px; }
+        .student-meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:18px 0 0; }
+        .meta-card { padding:16px; border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,.9); }
+        .meta-label { display:block; margin-bottom:6px; color:var(--muted); font-size:.95rem; }
+        .meta-value { font-weight:800; }
+        label { display:block; margin-bottom:8px; font-weight:700; }
+        input,button { font:inherit; }
+        input { width:100%; min-height:52px; padding:14px 16px; border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.96); color:var(--ink); font-size:1rem; margin-bottom:16px; }
+        input:focus { outline:3px solid rgba(203,91,62,.15); border-color:rgba(203,91,62,.4); }
+        .primary-btn { width:100%; min-height:54px; border:none; border-radius:18px; background:linear-gradient(135deg,var(--accent),#df8c46); color:#fffaf5; font-size:1rem; font-weight:800; cursor:pointer; box-shadow:0 16px 28px rgba(203,91,62,.24); }
+        .status { min-height:24px; margin-top:14px; font-weight:700; }
+        .status.error { color:#a23d33; }
+        .status.success { color:#1c6e54; }
+        .hint { margin:14px 0 0; color:var(--muted); line-height:1.6; }
+        .badge { display:inline-flex; align-items:center; min-height:36px; padding:0 12px; margin-top:14px; border-radius:999px; background:rgba(28,110,84,.1); color:#1c6e54; font-weight:700; }
+        @media (max-width:960px) { .hero,.grid,.student-meta { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="topbar">
+            <div class="brand">Nền tảng Trắc nghiệm & Kiểm tra</div>
+            <div class="top-actions">
+                <div class="identity-badge">{{ student_name }} | {{ student_code }}</div>
+                <a href="/teacher">Trang giảng viên</a>
+                <a href="/student/logout">Đăng xuất</a>
+            </div>
+        </div>
+        <section class="hero">
+            <div class="headline">
+                <p class="eyebrow">Không gian sinh viên</p>
+                <h1>Sẵn sàng vào phòng thi với tài khoản sinh viên của bạn.</h1>
+                <p class="lead">Bạn đã đăng nhập thành công. Chỉ cần nhập mã phòng do giảng viên cung cấp để bắt đầu làm bài, theo dõi đồng hồ đếm ngược và nhận kết quả minh bạch ngay sau khi nộp bài.</p>
+                <div class="student-meta">
+                    <article class="meta-card">
+                        <span class="meta-label">Họ và tên</span>
+                        <div class="meta-value">{{ student_name }}</div>
+                    </article>
+                    <article class="meta-card">
+                        <span class="meta-label">Mã sinh viên</span>
+                        <div class="meta-value">{{ student_code }}</div>
+                    </article>
+                </div>
+                <div class="grid">
+                    <article class="card"><h3>Mã phòng thi</h3><p>Nhập mã do giảng viên cung cấp để vào đúng đề thi chỉ trong vài giây.</p></article>
+                    <article class="card"><h3>Đồng hồ đếm ngược</h3><p>Thời gian còn lại được cập nhật liên tục, hết giờ hệ thống sẽ tự nộp bài.</p></article>
+                    <article class="card"><h3>Chấm điểm tự động</h3><p>Xem điểm số, đáp án đúng và mức độ hoàn thành một cách rõ ràng.</p></article>
+                </div>
+            </div>
+            <aside class="join-card">
+                <h2>Tham gia bài kiểm tra</h2>
+                <label for="joinCode">Mã phòng thi</label>
+                <input id="joinCode" type="text" placeholder="Ví dụ: NHOM02" maxlength="10" autofocus>
+                <button class="primary-btn" id="joinButton" type="button">Vào phòng ngay</button>
+                <div class="status" id="statusMessage"></div>
+                <p class="hint">Bạn có thể dùng ngay mã demo <strong>NHOM02</strong> để kiểm thử luồng sinh viên.</p>
+                <div class="badge">Chống gian lận cơ bản: cảnh báo khi rời khỏi màn hình thi</div>
+            </aside>
+        </section>
+    </div>
+    <script>
+        const joinCodeInput = document.getElementById("joinCode");
+        const joinButton = document.getElementById("joinButton");
+        const statusMessage = document.getElementById("statusMessage");
+        function setStatus(message, type = "") { statusMessage.textContent = message; statusMessage.className = type ? `status ${type}` : "status"; }
+        async function joinRoom() {
+            const joinCode = joinCodeInput.value.trim().toUpperCase();
+            if (!joinCode) { setStatus("Bạn cần nhập mã phòng thi.", "error"); joinCodeInput.focus(); return; }
+            joinButton.disabled = true;
+            setStatus("Đang kiểm tra mã phòng thi...", "success");
+            try {
+                const response = await fetch(`/api/check-room/${encodeURIComponent(joinCode)}`);
+                const payload = await response.json();
+                if (payload.status !== "success") { setStatus(payload.message || "Không thể vào phòng thi.", "error"); joinButton.disabled = false; return; }
+                window.location.href = `/quiz-room/${joinCode}`;
+            } catch (error) {
+                setStatus("Không kết nối được tới hệ thống. Vui lòng thử lại.", "error");
+                joinButton.disabled = false;
+            }
+        }
+        joinButton.addEventListener("click", joinRoom);
+        joinCodeInput.addEventListener("keydown", (event) => { if (event.key === "Enter") joinRoom(); });
+    </script>
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang giảng viên</title>
+    <style>
+        :root {
+            --bg-start: #f2ece2;
+            --bg-end: #dce6ef;
+            --surface: rgba(255, 255, 255, 0.92);
+            --surface-soft: #fffdfa;
+            --ink: #193553;
+            --muted: #64778f;
+            --line: rgba(25, 53, 83, 0.12);
+            --accent: #0f7a77;
+            --accent-soft: rgba(15, 122, 119, 0.1);
+            --accent-strong: #095d5a;
+            --warm: #ca6746;
+            --danger: #a7473d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Verdana", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(15, 122, 119, 0.14), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(202, 103, 70, 0.14), transparent 32%),
+                linear-gradient(150deg, var(--bg-start), var(--bg-end));
+        }
+
+        .page {
+            max-width: 1260px;
+            margin: 0 auto;
+            padding: 28px 18px 56px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .topbar a {
+            color: var(--ink);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 28px;
+            box-shadow: 0 18px 50px rgba(25, 53, 83, 0.12);
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-copy,
+        .hero-aside,
+        .builder,
+        .list-panel {
+            padding: 26px;
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin-top: 0;
+            font-family: "Cambria", "Georgia", serif;
+        }
+
+        .hero-copy p,
+        .hero-aside p,
+        .helper-list,
+        .empty {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--line);
+        }
+
+        .stat-card strong {
+            display: block;
+            font-size: 1.6rem;
+            margin-top: 6px;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.96);
+            color: var(--ink);
+            font-size: 0.98rem;
+            margin-bottom: 16px;
+        }
+
+        textarea {
+            min-height: 94px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: 3px solid rgba(15, 122, 119, 0.16);
+            border-color: rgba(15, 122, 119, 0.45);
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .question-editor {
+            padding: 18px;
+            margin-bottom: 16px;
+            border-radius: 22px;
+            border: 1px solid var(--line);
+            background: var(--surface-soft);
+        }
+
+        .question-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .question-index {
+            font-weight: 800;
+            color: var(--accent-strong);
+        }
+
+        .ghost-btn,
+        .primary-btn {
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+        }
+
+        .ghost-btn {
+            background: rgba(25, 53, 83, 0.08);
+            color: var(--ink);
+        }
+
+        .danger-btn {
+            background: rgba(167, 71, 61, 0.1);
+            color: var(--danger);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--accent), #2ea58d);
+            color: #f8fffd;
+            box-shadow: 0 14px 26px rgba(15, 122, 119, 0.22);
+        }
+
+        .builder-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .feedback {
+            min-height: 24px;
+            margin-top: 16px;
+            font-weight: 700;
+        }
+
+        .feedback.error {
+            color: var(--danger);
+        }
+
+        .feedback.success {
+            color: var(--accent-strong);
+        }
+
+        .quiz-card {
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.9);
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .quiz-card summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 18px 20px;
+        }
+
+        .quiz-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .summary-row h3 {
+            margin: 0 0 6px;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 32px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .quiz-content {
+            padding: 0 20px 20px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.95fr);
+            gap: 18px;
+        }
+
+        .box {
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: var(--surface-soft);
+        }
+
+        .question-item {
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid var(--line);
+            margin-bottom: 12px;
+        }
+
+        .question-item p,
+        table {
+            margin: 0;
+        }
+
+        .options-list {
+            margin-top: 10px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            font-size: 0.95rem;
+        }
+
+        th {
+            color: var(--muted);
+        }
+
+        .helper-list {
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        @media (max-width: 1020px) {
+            .hero,
+            .workspace,
+            .content-grid,
+            .hero-stats,
+            .row-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="topbar">
+            <a href="/">← Trang sinh viên</a>
+            <a href="/api/init-all">Tạo dữ liệu demo</a>
+        </div>
+
+        <section class="hero">
+            <div class="panel hero-copy">
+                <p class="eyebrow">Không gian giảng viên</p>
+                <h1>Quản lý ngân hàng câu hỏi, tạo đề thi và xem bảng điểm trong một màn hình.</h1>
+                <p>
+                    Đây là bản MVP cho bài toán Quiz and Testing Platform: giảng viên có thể tạo đề thi
+                    có mã phòng, đặt giới hạn thời gian, theo dõi số lần cảnh báo chống gian lận cơ bản
+                    và xem kết quả tự động của sinh viên.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <span>Phòng demo</span>
+                        <strong>{{ sample_join_code }}</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span>Số đề hiện có</span>
+                        <strong>{{ quizzes|length }}</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span>Chức năng</span>
+                        <strong>Ngân hàng câu hỏi + Chấm điểm tự động</strong>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="panel hero-aside">
+                <h2>Gợi ý thao tác</h2>
+                <ul class="helper-list">
+                    <li>Tạo đề thi mới bằng form bên dưới, có thể để trống mã phòng để hệ thống tự sinh.</li>
+                    <li>Mỗi câu hỏi bắt buộc có 4 lựa chọn và 1 đáp án đúng.</li>
+                    <li>Chuyển sang trang sinh viên để vào phòng bằng mã thi vừa tạo.</li>
+                    <li>Khi sinh viên nộp bài, kết quả sẽ xuất hiện ngay trong bảng điểm bên dưới.</li>
+                </ul>
+            </aside>
+        </section>
+
+        <section class="workspace">
+            <div class="panel builder">
+                <h2>Tạo đề thi mới</h2>
+                <form id="quizBuilder">
+                    <label for="title">Tên đề thi</label>
+                    <input id="title" type="text" placeholder="Ví dụ: Kiểm tra Java cơ bản">
+
+                    <div class="row-2">
+                        <div>
+                            <label for="joinCode">Mã phòng thi</label>
+                            <input id="joinCode" type="text" placeholder="Để trống để tự động tạo" maxlength="10">
+                        </div>
+                        <div>
+                            <label for="timeLimit">Thời gian (phút)</label>
+                            <input id="timeLimit" type="number" min="1" max="180" value="15">
+                        </div>
+                    </div>
+
+                    <h3>Danh sách câu hỏi</h3>
+                    <div id="questionContainer"></div>
+
+                    <div class="builder-actions">
+                        <button class="ghost-btn" id="addQuestionButton" type="button">Thêm câu hỏi</button>
+                        <button class="primary-btn" id="createQuizButton" type="submit">Tạo đề thi</button>
+                    </div>
+                    <div class="feedback" id="formFeedback"></div>
+                </form>
+            </div>
+
+            <aside class="panel list-panel">
+                <h2>Từ khóa phân tích</h2>
+                <ul class="helper-list">
+                    <li>Ngân hàng câu hỏi (Question Bank)</li>
+                    <li>Mã phòng (Join Code)</li>
+                    <li>Đồng hồ đếm ngược (Timer)</li>
+                    <li>Chấm điểm tự động (Auto-grading)</li>
+                    <li>Chống gian lận cơ bản (Anti-cheat)</li>
+                </ul>
+                <p>
+                    Có sẵn mã demo <strong>{{ sample_join_code }}</strong> để kiểm thử nhanh luồng sinh viên.
+                </p>
+            </aside>
+        </section>
+
+        <section class="panel list-panel" style="margin-top: 22px;">
+            <h2>Đề thi hiện có và bảng điểm</h2>
+            {% if quizzes %}
+                {% for quiz in quizzes %}
+                    <details class="quiz-card" {% if loop.first %}open{% endif %}>
+                        <summary>
+                            <div class="summary-row">
+                                <div>
+                                    <h3>{{ quiz.title }}</h3>
+                                    <div class="meta">
+                                        <span class="pill">Mã phòng: {{ quiz.join_code }}</span>
+                                        <span class="pill">{{ quiz.time_limit }} phút</span>
+                                        <span class="pill">{{ quiz.question_count }} câu hỏi</span>
+                                        <span class="pill">{{ quiz.attempt_count }} lượt nộp</span>
+                                    </div>
+                                </div>
+                                <div class="pill">
+                                    {% if quiz.average_score is not none %}
+                                        Điểm TB: {{ "%.2f"|format(quiz.average_score) }}
+                                    {% else %}
+                                        Chưa có bài nộp
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </summary>
+
+                        <div class="quiz-content">
+                            <div class="content-grid">
+                                <section class="box">
+                                    <h3>Ngân hàng câu hỏi</h3>
+                                    {% for question in quiz.questions %}
+                                        <article class="question-item">
+                                            <p><strong>Câu {{ loop.index }}:</strong> {{ question.content }}</p>
+                                            <div class="options-list">
+                                                <div>A. {{ question.options["A"] }}</div>
+                                                <div>B. {{ question.options["B"] }}</div>
+                                                <div>C. {{ question.options["C"] }}</div>
+                                                <div>D. {{ question.options["D"] }}</div>
+                                                <div><strong>Đáp án đúng:</strong> {{ question.correct_option }}</div>
+                                            </div>
+                                        </article>
+                                    {% endfor %}
+                                </section>
+
+                                <section class="box">
+                                    <h3>Kết quả sinh viên</h3>
+                                    {% if quiz.results %}
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Sinh viên</th>
+                                                    <th>Điểm</th>
+                                                    <th>Đúng/Tổng</th>
+                                                    <th>Cảnh báo</th>
+                                                    <th>Thời gian nộp</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for result in quiz.results %}
+                                                    <tr>
+                                                        <td>{{ result.student_name }}</td>
+                                                        <td>{{ "%.2f"|format(result.score or 0) }}</td>
+                                                        <td>{{ result.correct_count }}/{{ result.total_questions }}</td>
+                                                        <td>{{ result.cheat_count }}</td>
+                                                        <td>{{ result.submitted_at }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p class="empty">Chưa có sinh viên nào nộp bài cho đề thi này.</p>
+                                    {% endif %}
+                                </section>
+                            </div>
+                        </div>
+                    </details>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Chưa có đề thi nào. Hãy tạo đề đầu tiên bằng form ở trên.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+        const questionContainer = document.getElementById("questionContainer");
+        const addQuestionButton = document.getElementById("addQuestionButton");
+        const quizBuilder = document.getElementById("quizBuilder");
+        const formFeedback = document.getElementById("formFeedback");
+        const createQuizButton = document.getElementById("createQuizButton");
+
+        function setFeedback(message, type = "") {
+            formFeedback.textContent = message;
+            formFeedback.className = type ? `feedback ${type}` : "feedback";
+        }
+
+        function refreshQuestionLabels() {
+            document.querySelectorAll(".question-editor").forEach((editor, index) => {
+                editor.querySelector(".question-index").textContent = `Câu hỏi ${index + 1}`;
+            });
+        }
+
+        function createQuestionEditor() {
+            const wrapper = document.createElement("section");
+            wrapper.className = "question-editor";
+            wrapper.innerHTML = `
+                <div class="question-head">
+                    <div class="question-index">Câu hỏi</div>
+                    <button class="ghost-btn danger-btn remove-question" type="button">Xóa</button>
+                </div>
+                <label>Nội dung câu hỏi</label>
+                <textarea class="question-content" placeholder="Nhập nội dung câu hỏi"></textarea>
+
+                <div class="row-2">
+                    <div>
+                        <label>Đáp án A</label>
+                        <input class="option-a" type="text" placeholder="Lựa chọn A">
+                    </div>
+                    <div>
+                        <label>Đáp án B</label>
+                        <input class="option-b" type="text" placeholder="Lựa chọn B">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div>
+                        <label>Đáp án C</label>
+                        <input class="option-c" type="text" placeholder="Lựa chọn C">
+                    </div>
+                    <div>
+                        <label>Đáp án D</label>
+                        <input class="option-d" type="text" placeholder="Lựa chọn D">
+                    </div>
+                </div>
+
+                <label>Đáp án đúng</label>
+                <select class="correct-option">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            `;
+
+            questionContainer.appendChild(wrapper);
+            refreshQuestionLabels();
+        }
+
+        function buildPayload() {
+            const title = document.getElementById("title").value.trim();
+            const joinCode = document.getElementById("joinCode").value.trim();
+            const timeLimit = document.getElementById("timeLimit").value;
+
+            const questions = [...document.querySelectorAll(".question-editor")].map((editor) => ({
+                content: editor.querySelector(".question-content").value.trim(),
+                option_a: editor.querySelector(".option-a").value.trim(),
+                option_b: editor.querySelector(".option-b").value.trim(),
+                option_c: editor.querySelector(".option-c").value.trim(),
+                option_d: editor.querySelector(".option-d").value.trim(),
+                correct_option: editor.querySelector(".correct-option").value
+            }));
+
+            if (!title) {
+                setFeedback("Bạn cần nhập tên đề thi.", "error");
+                return null;
+            }
+
+            if (questions.length === 0) {
+                setFeedback("Cần ít nhất 1 câu hỏi.", "error");
+                return null;
+            }
+
+            return {
+                title,
+                join_code: joinCode,
+                time_limit: Number(timeLimit),
+                questions
+            };
+        }
+
+        addQuestionButton.addEventListener("click", createQuestionEditor);
+
+        questionContainer.addEventListener("click", (event) => {
+            if (!event.target.classList.contains("remove-question")) {
+                return;
+            }
+
+            const editor = event.target.closest(".question-editor");
+            if (editor) {
+                editor.remove();
+                refreshQuestionLabels();
+            }
+        });
+
+        quizBuilder.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const payload = buildPayload();
+            if (!payload) {
+                return;
+            }
+
+            createQuizButton.disabled = true;
+            setFeedback("Đang tạo đề thi...", "success");
+
+            try {
+                const response = await fetch("/api/teacher/quizzes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.status !== "success") {
+                    throw new Error(result.message || "Không tạo được đề thi.");
+                }
+
+                setFeedback(`Đã tạo đề thi thành công. Mã phòng: ${result.join_code}. Đang tải lại dữ liệu...`, "success");
+                window.setTimeout(() => window.location.reload(), 900);
+            } catch (error) {
+                createQuizButton.disabled = false;
+                setFeedback(error.message || "Có lỗi xảy ra khi tạo đề thi.", "error");
+            }
+        });
+
+        createQuestionEditor();
+        createQuestionEditor();
+    </script>
+</body>
+</html>

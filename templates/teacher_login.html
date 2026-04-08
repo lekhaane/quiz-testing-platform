@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập giảng viên</title>
+    <style>
+        :root { --ink:#17324f; --muted:#5e7388; --accent:#0f7a77; --danger:#b34b3b; --font-ui:"Noto Sans","Segoe UI","Tahoma","Arial",sans-serif; --font-display:"Noto Sans","Segoe UI Semibold","Segoe UI","Tahoma","Arial",sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; display:grid; place-items:center; padding:18px; font-family:var(--font-ui); color:var(--ink); text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; background:radial-gradient(circle at top left, rgba(15,122,119,.14), transparent 28%),radial-gradient(circle at bottom right, rgba(202,103,70,.14), transparent 32%),linear-gradient(150deg,#f2ece2,#dce6ef); }
+        .card { width:min(440px,100%); padding:28px; border-radius:28px; background:rgba(255,255,255,.92); border:1px solid rgba(255,255,255,.82); box-shadow:0 18px 50px rgba(25,53,83,.12); backdrop-filter:blur(10px); }
+        h1 { margin:0 0 10px; font-family:var(--font-display); }
+        p { color:var(--muted); line-height:1.7; }
+        label { display:block; margin-bottom:8px; font-weight:700; }
+        input,button { font:inherit; }
+        input { width:100%; min-height:50px; margin-bottom:16px; padding:12px 14px; border-radius:16px; border:1px solid rgba(23,50,79,.12); background:rgba(255,255,255,.96); }
+        .primary-btn { width:100%; min-height:52px; border:none; border-radius:18px; background:linear-gradient(135deg,var(--accent),#2ea58d); color:#f8fffd; font-size:1rem; font-weight:800; cursor:pointer; }
+        .error { min-height:22px; margin:10px 0 0; color:var(--danger); font-weight:700; }
+        .hint { margin-top:16px; padding:14px; border-radius:18px; background:rgba(15,122,119,.08); }
+        .hint strong { color:var(--accent); }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <h1>Đăng nhập giảng viên</h1>
+        <p>Đăng nhập để tạo đề thi, quản lý ngân hàng câu hỏi và theo dõi bảng điểm của sinh viên.</p>
+        <form method="post">
+            <label for="username">Tên đăng nhập</label>
+            <input id="username" name="username" type="text" value="{{ default_username }}" required>
+            <label for="password">Mật khẩu</label>
+            <input id="password" name="password" type="password" value="{{ default_password }}" required>
+            <button class="primary-btn" type="submit">Đăng nhập</button>
+            <div class="error">{{ error_message }}</div>
+        </form>
+        <div class="hint">Tài khoản mặc định: <strong>{{ default_username }}</strong> / <strong>{{ default_password }}</strong></div>
+    </main>
+</body>
+</html>

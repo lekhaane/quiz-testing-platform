@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Làm bài kiểm tra</title>
+    <style>
+        /* CSS LÀM ĐẸP GIAO DIỆN */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .timer { font-size: 1.2em; font-weight: bold; color: #d9534f; background: #fdf2f2; padding: 10px 15px; border-radius: 5px; }
+        .question-box { margin-bottom: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; }
+        .question-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; color: #333; }
+        .option { display: block; margin-bottom: 8px; cursor: pointer; padding: 10px; background: #f9f9f9; border-radius: 5px; transition: 0.2s; }
+        .option:hover { background: #e9ecef; }
+        .submit-btn { background: #28a745; color: white; border: none; padding: 15px; font-size: 1.1em; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; transition: 0.3s; }
+        .submit-btn:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="quiz-title">Đang tải đề thi...</h1>
+            <div class="timer" id="timer">--:--</div>
+        </div>
+        
+        <form id="quiz-form">
+            </form>
+        
+        <button id="submit-btn" class="submit-btn" style="display: none;" onclick="submitQuiz()">NỘP BÀI</button>
+    </div>
+
+    <script>
+        let quizData = null; 
+
+        // 1. TÍNH NĂNG CHỐNG GIAN LẬN (ANTI-CHEATING)
+        let cheatCount = 0;
+        document.addEventListener("visibilitychange", () => {
+            // Nếu người dùng chuyển tab và chưa nộp bài
+            if (document.visibilityState === "hidden" && document.getElementById('quiz-form').style.display !== 'none') {
+                cheatCount++;
+                alert(`⚠️ CẢNH BÁO GIAN LẬN (Lần ${cheatCount}): Bạn vừa chuyển sang tab khác! Hệ thống đã ghi nhận hành vi này.`);
+            }
+        });
+
+        async function submitQuiz() {
+    // 1. Lấy mã phòng từ URL
+    const joinCode = window.location.pathname.split('/').pop();
+
+    // 2. Gom đáp án sinh viên chọn
+    const answers = {};
+    quizData.questions.forEach(q => {
+        const selected = document.querySelector(`input[name="q_${q.id}"]:checked`);
+        answers[q.id] = selected ? selected.value : null;
+    });
+
+    console.log("Đang gửi bài làm lên server...", { quiz_id: quizData.id, join_code: joinCode, answers: answers });
+
+    try {
+        const response = await fetch('/api/submit-quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                quiz_id: quizData.id, 
+                join_code: joinCode, 
+                answers: answers 
+            })
+        });
+        
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            // Hiển thị kết quả lên màn hình
+            document.getElementById('quiz-form').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('timer').style.display = 'none';
+            
+            let reviewHtml = '<h3 style="margin-top:20px;">Phân tích chi tiết:</h3>';
+            result.details.forEach((item, idx) => {
+                let color = item.is_correct ? '#28a745' : '#dc3545';
+                reviewHtml += `
+                    <div style="border-left: 5px solid ${color}; background:#f8f9fa; padding:10px; margin-bottom:10px;">
+                        <b>Câu ${idx+1}: ${item.question}</b><br>
+                        Bạn chọn: ${item.your_answer || "Bỏ trống"} | Đáp án đúng: <b style="color:#28a745">${item.correct_answer}</b>
+                    </div>
+                `;
+            });
+
+            document.getElementById('quiz-title').innerText = "KẾT QUẢ: " + result.score + " ĐIỂM";
+            document.getElementById('quiz-form').insertAdjacentHTML('afterend', `
+                <div style="text-align:center; padding:20px; background:#d4edda; border-radius:10px;">
+                    <h2 style="color:#155724;">Bạn đúng ${result.correct_count}/${result.total} câu</h2>
+                    <button onclick="location.href='/'" style="padding:10px 20px; cursor:pointer; background:#007bff; color:white; border:none; border-radius:5px;">Về trang chủ</button>
+                </div>
+                ${reviewHtml}
+            `);
+        }
+    } catch (error) {
+        console.error("Lỗi gửi bài:", error);
+        alert("Lỗi mạng! Hãy kiểm tra Terminal xem Server có báo lỗi đỏ không.");
+    }
+}
+
+        // 3. Vẽ câu hỏi
+        function renderQuiz() {
+            document.getElementById('quiz-title').innerText = quizData.title;
+            const form = document.getElementById('quiz-form');
+            
+            quizData.questions.forEach((q, index) => {
+                const questionHtml = `
+                    <div class="question-box">
+                        <div class="question-title">Câu ${index + 1}: ${q.content}</div>
+                        <label class="option"><input type="radio" name="q_${q.id}" value="A"> A. ${q.options.A}</label>
+                        <label class="option"><input type="radio" name="q_${q.id}" value="B"> B. ${q.options.B}</label>
+                        <label class="option"><input type="radio" name="q_${q.id}" value="C"> C. ${q.options.C}</label>
+                        <label class="option"><input type="radio" name="q_${q.id}" value="D"> D. ${q.options.D}</label>
+                    </div>
+                `;
+                form.innerHTML += questionHtml; 
+            });
+            document.getElementById('submit-btn').style.display = 'block';
+        }
+
+        // 4. Đồng hồ đếm ngược
+        function startTimer(minutes) {
+            let time = minutes * 60; 
+            const timerElement = document.getElementById('timer');
+            
+            const countdown = setInterval(() => {
+                let m = Math.floor(time / 60);
+                let s = time % 60;
+                timerElement.innerText = `Thời gian: ${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+                
+                if (time <= 0) {
+                    clearInterval(countdown); 
+                    alert("Hết giờ! Hệ thống sẽ tự động nộp bài.");
+                    submitQuiz();
+                }
+                time--;
+            }, 1000);
+        }
+
+        // 5. Nộp bài và In bảng điểm chi tiết
+        async function submitQuiz() {
+            const answers = {};
+            quizData.questions.forEach(q => {
+                const selected = document.querySelector(`input[name="q_${q.id}"]:checked`);
+                answers[q.id] = selected ? selected.value : null; 
+            });
+
+            try {
+                const response = await fetch('/api/submit-quiz', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quiz_id: quizData.id, answers: answers })
+                });
+                
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // Ẩn giao diện thi
+                    document.getElementById('quiz-form').style.display = 'none';
+                    document.getElementById('submit-btn').style.display = 'none';
+                    document.getElementById('timer').style.display = 'none';
+                    
+                    // Tạo HTML phần phân tích đúng/sai
+                    let reviewHtml = '<h3 style="margin-top: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px;">Phân tích chi tiết:</h3>';
+                    
+                    result.details.forEach((item, idx) => {
+                        let color = item.is_correct ? '#28a745' : '#dc3545'; // Xanh nếu đúng, Đỏ nếu sai
+                        let icon = item.is_correct ? '✅ Chính xác' : '❌ Sai';
+                        
+                        reviewHtml += `
+                            <div style="background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-left: 5px solid ${color}; border-radius: 4px;">
+                                <strong style="font-size: 1.1em;">Câu ${idx + 1}:</strong> <span style="color: ${color}; font-weight: bold;">${icon}</span>
+                                <br><br>
+                                Đáp án bạn chọn: <b>${item.your_answer || 'Không khoanh'}</b>
+                                ${!item.is_correct ? `<br><span style="color: #28a745;">Đáp án chuẩn của hệ thống: <b>${item.correct_answer}</b></span>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    // Vẽ toàn bộ bảng điểm lên màn hình
+                    document.getElementById('quiz-title').innerText = "🎉 HOÀN THÀNH BÀI THI";
+                    document.getElementById('quiz-form').insertAdjacentHTML('afterend', `
+                        <div style="text-align: center; background: #e8f4f8; padding: 30px; border-radius: 10px; margin-top: 20px;">
+                            <h2 style="font-size: 2.5em; color: #0056b3; margin-bottom: 10px;">Điểm số: ${result.score} / 10</h2>
+                            <p style="font-size: 1.2em; color: #333;">Bạn trả lời đúng <strong>${result.correct_count}</strong> / <strong>${result.total}</strong> câu.</p>
+                            <p style="color: red; font-size: 0.9em;">(Số lần chuyển tab gian lận: ${cheatCount})</p>
+                            <button onclick="location.reload()" style="margin-top: 20px; background: #007bff; color: white; border: none; padding: 12px 25px; font-size: 1.1em; border-radius: 5px; cursor: pointer;">Thi lại</button>
+                        </div>
+                        <div style="text-align: left;">${reviewHtml}</div>
+                    `);
+                }
+            } catch (error) {
+                alert("Lỗi mạng! Không thể nộp bài.");
+            }
+        }
+
+        window.onload = fetchQuiz;
+    </script>
+</body>
+</html>

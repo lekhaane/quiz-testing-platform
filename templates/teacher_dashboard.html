@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang giảng viên</title>
+    <style>
+        :root { --ink:#193553; --muted:#64778f; --accent:#0f7a77; --accent-strong:#095d5a; --danger:#a7473d; --line:rgba(25,53,83,.12); --surface:rgba(255,255,255,.92); --surface-soft:#fffdfa; --font-ui:"Noto Sans","Segoe UI","Tahoma","Arial",sans-serif; --font-display:"Noto Sans","Segoe UI Semibold","Segoe UI","Tahoma","Arial",sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; font-family:var(--font-ui); color:var(--ink); text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; background:radial-gradient(circle at top left, rgba(15,122,119,.14), transparent 28%),radial-gradient(circle at bottom right, rgba(202,103,70,.14), transparent 32%),linear-gradient(150deg,#f2ece2,#dce6ef); }
+        .page { max-width:1260px; margin:0 auto; padding:28px 18px 56px; }
+        .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:24px; }
+        .topbar a { color:var(--ink); text-decoration:none; font-weight:700; }
+        .hero,.workspace { display:grid; gap:22px; }
+        .hero { grid-template-columns:1.1fr .9fr; margin-bottom:22px; }
+        .workspace { grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr); align-items:start; }
+        .panel { background:var(--surface); border-radius:28px; border:1px solid rgba(255,255,255,.82); box-shadow:0 18px 50px rgba(25,53,83,.12); backdrop-filter:blur(10px); }
+        .hero-copy,.hero-side,.builder,.list-panel { padding:26px; }
+        .eyebrow { margin:0 0 10px; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
+        h1,h2,h3 { margin-top:0; font-family:var(--font-display); }
+        .hero-copy p,.hero-side p,.helper-list,.empty { color:var(--muted); line-height:1.7; }
+        .stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:18px; }
+        .stat-card { padding:16px; border-radius:18px; background:rgba(255,255,255,.9); border:1px solid var(--line); }
+        .stat-card strong { display:block; margin-top:6px; font-size:1.45rem; }
+        label { display:block; margin-bottom:8px; font-size:.95rem; font-weight:700; }
+        input,textarea,select,button { font:inherit; }
+        input,textarea,select { width:100%; min-height:48px; padding:12px 14px; margin-bottom:16px; border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.96); color:var(--ink); font-size:.98rem; }
+        textarea { min-height:94px; resize:vertical; }
+        .row-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+        .question-editor { padding:18px; margin-bottom:16px; border-radius:22px; border:1px solid var(--line); background:var(--surface-soft); }
+        .question-head,.quiz-actions,.builder-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+        .question-index { font-weight:800; color:var(--accent-strong); }
+        .ghost-btn,.primary-btn,.danger-btn { min-height:46px; padding:0 16px; border:none; border-radius:16px; font-weight:800; cursor:pointer; }
+        .ghost-btn { background:rgba(25,53,83,.08); color:var(--ink); }
+        .danger-btn { background:rgba(167,71,61,.1); color:var(--danger); }
+        .primary-btn { background:linear-gradient(135deg,var(--accent),#2ea58d); color:#f8fffd; }
+        .feedback { min-height:24px; margin-top:14px; font-weight:700; }
+        .feedback.error { color:var(--danger); }
+        .feedback.success { color:var(--accent-strong); }
+        .quiz-card { border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.9); margin-bottom:14px; overflow:hidden; }
+        .quiz-card summary { list-style:none; cursor:pointer; padding:18px 20px; }
+        .quiz-card summary::-webkit-details-marker { display:none; }
+        .summary-row { display:flex; justify-content:space-between; align-items:start; gap:16px; flex-wrap:wrap; }
+        .pill { display:inline-flex; align-items:center; min-height:32px; padding:0 12px; margin-right:8px; margin-bottom:8px; border-radius:999px; background:rgba(15,122,119,.1); color:var(--accent-strong); font-size:.92rem; font-weight:700; }
+        .quiz-content { padding:0 20px 20px; }
+        .content-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.95fr); gap:18px; }
+        .box { padding:16px; border-radius:18px; border:1px solid var(--line); background:var(--surface-soft); }
+        .question-item { padding:14px; margin-bottom:12px; border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.94); }
+        .question-item p { margin:0; }
+        .options-list { margin-top:10px; color:var(--muted); line-height:1.55; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); font-size:.95rem; }
+        th { color:var(--muted); }
+        .helper-list { padding-left:18px; margin:0; }
+        .note { margin-top:14px; padding:14px; border-radius:18px; background:rgba(15,122,119,.08); color:var(--accent-strong); font-weight:700; }
+        @media (max-width:1020px) { .hero,.workspace,.stats,.row-2,.content-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="topbar">
+            <a href="/">← Trang sinh viên</a>
+            <div><strong>{{ teacher_name }}</strong> <span style="color:#64778f;">({{ teacher_username }})</span> &nbsp;|&nbsp; <a href="/teacher/logout">Đăng xuất</a></div>
+        </div>
+        <section class="hero">
+            <div class="panel hero-copy">
+                <p class="eyebrow">Không gian giảng viên</p>
+                <h1>Quản lý đề thi, ngân hàng câu hỏi và bảng điểm trong một nơi.</h1>
+                <p>Bạn có thể tạo đề thi mới, chỉnh sửa đề hiện có, xóa đề không còn dùng và theo dõi kết quả làm bài của sinh viên ngay trên cùng một dashboard.</p>
+                <div class="stats">
+                    <div class="stat-card"><span>Mã demo</span><strong>{{ sample_join_code }}</strong></div>
+                    <div class="stat-card"><span>Số đề hiện có</span><strong>{{ quizzes_data|length }}</strong></div>
+                    <div class="stat-card"><span>Lưu trữ</span><strong>{{ storage_label }}</strong></div>
+                </div>
+            </div>
+            <aside class="panel hero-side">
+                <h2>Gợi ý thao tác</h2>
+                <ul class="helper-list">
+                    <li>Tạo đề thi mới bằng form bên dưới và chia sẻ mã phòng cho sinh viên.</li>
+                    <li>Chọn “Sửa” để nạp đề thi lên form và cập nhật toàn bộ câu hỏi.</li>
+                    <li>Chọn “Xóa” để gỡ đề thi và các kết quả liên quan khỏi hệ thống.</li>
+                    <li>Mã giảng viên mặc định: <strong>giangvien / 123456</strong>.</li>
+                </ul>
+                <div class="note">Bạn có thể truy cập nhanh mã demo <strong>{{ sample_join_code }}</strong> từ trang sinh viên.</div>
+            </aside>
+        </section>
+        <section class="workspace">
+            <div class="panel builder">
+                <h2 id="builderTitle">Tạo đề thi mới</h2>
+                <form id="quizBuilder">
+                    <input id="editingQuizId" type="hidden">
+                    <label for="title">Tên đề thi</label>
+                    <input id="title" type="text" placeholder="Ví dụ: Kiểm tra Java cơ bản">
+                    <div class="row-2">
+                        <div><label for="joinCode">Mã phòng thi</label><input id="joinCode" type="text" placeholder="Để trống để hệ thống tự tạo" maxlength="10"></div>
+                        <div><label for="timeLimit">Thời gian (phút)</label><input id="timeLimit" type="number" min="1" max="180" value="15"></div>
+                    </div>
+                    <h3>Danh sách câu hỏi</h3>
+                    <div id="questionContainer"></div>
+                    <div class="builder-actions">
+                        <button class="ghost-btn" id="addQuestionButton" type="button">Thêm câu hỏi</button>
+                        <div>
+                            <button class="ghost-btn" id="cancelEditButton" type="button" hidden>Hủy sửa</button>
+                            <button class="primary-btn" id="submitButton" type="submit">Tạo đề thi</button>
+                        </div>
+                    </div>
+                    <div class="feedback" id="formFeedback"></div>
+                </form>
+            </div>
+            <aside class="panel list-panel">
+                <h2>Từ khóa nghiệp vụ</h2>
+                <ul class="helper-list">
+                    <li>Question Bank</li>
+                    <li>Join Code</li>
+                    <li>Timer</li>
+                    <li>Auto-grading</li>
+                    <li>Anti-cheat</li>
+                </ul>
+            </aside>
+        </section>
+        <section class="panel list-panel" style="margin-top:22px;">
+            <h2>Đề thi hiện có và bảng điểm</h2>
+            {% if quizzes_data %}
+                {% for quiz in quizzes_data %}
+                    <details class="quiz-card" {% if loop.first %}open{% endif %}>
+                        <summary>
+                            <div class="summary-row">
+                                <div>
+                                    <h3>{{ quiz.title }}</h3>
+                                    <div>
+                                        <span class="pill">Mã phòng: {{ quiz.join_code }}</span>
+                                        <span class="pill">{{ quiz.time_limit }} phút</span>
+                                        <span class="pill">{{ quiz.question_count }} câu hỏi</span>
+                                        <span class="pill">{{ quiz.attempt_count }} lượt nộp</span>
+                                    </div>
+                                </div>
+                                <div class="pill">{% if quiz.average_score is not none %}Điểm TB: {{ "%.2f"|format(quiz.average_score) }}{% else %}Chưa có bài nộp{% endif %}</div>
+                            </div>
+                        </summary>
+                        <div class="quiz-content">
+                            <div class="quiz-actions">
+                                <div></div>
+                                <div>
+                                    <button class="ghost-btn" type="button" onclick="loadQuizForEdit({{ quiz.id }})">Sửa</button>
+                                    <button class="danger-btn" type="button" onclick="deleteQuiz({{ quiz.id }}, {{ quiz.title|tojson }})">Xóa</button>
+                                </div>
+                            </div>
+                            <div class="content-grid" style="margin-top:16px;">
+                                <section class="box">
+                                    <h3>Ngân hàng câu hỏi</h3>
+                                    {% for question in quiz.questions %}
+                                        <article class="question-item">
+                                            <p><strong>Câu {{ loop.index }}:</strong> {{ question.content }}</p>
+                                            <div class="options-list">
+                                                <div>A. {{ question.option_a }}</div>
+                                                <div>B. {{ question.option_b }}</div>
+                                                <div>C. {{ question.option_c }}</div>
+                                                <div>D. {{ question.option_d }}</div>
+                                                <div><strong>Đáp án đúng:</strong> {{ question.correct_option }}</div>
+                                            </div>
+                                        </article>
+                                    {% endfor %}
+                                </section>
+                                <section class="box">
+                                    <h3>Kết quả sinh viên</h3>
+                                    {% if quiz.results %}
+                                        <table>
+                                            <thead><tr><th>Sinh viên</th><th>Mã SV</th><th>Điểm</th><th>Đúng/Tổng</th><th>Cảnh báo</th><th>Thời gian nộp</th></tr></thead>
+                                            <tbody>
+                                                {% for result in quiz.results %}
+                                                    <tr><td>{{ result.student_name }}</td><td>{{ result.student_code }}</td><td>{{ "%.2f"|format(result.score or 0) }}</td><td>{{ result.correct_count }}/{{ result.total_questions }}</td><td>{{ result.cheat_count }}</td><td>{{ result.submitted_at }}</td></tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p class="empty">Chưa có sinh viên nào nộp bài cho đề thi này.</p>
+                                    {% endif %}
+                                </section>
+                            </div>
+                        </div>
+                    </details>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Chưa có đề thi nào. Hãy tạo đề đầu tiên bằng form ở trên.</p>
+            {% endif %}
+        </section>
+    </div>
+    <script>
+        const quizzesData = {{ quizzes_data|tojson }};
+        const questionContainer = document.getElementById("questionContainer");
+        const addQuestionButton = document.getElementById("addQuestionButton");
+        const cancelEditButton = document.getElementById("cancelEditButton");
+        const quizBuilder = document.getElementById("quizBuilder");
+        const builderTitle = document.getElementById("builderTitle");
+        const editingQuizIdInput = document.getElementById("editingQuizId");
+        const submitButton = document.getElementById("submitButton");
+        const formFeedback = document.getElementById("formFeedback");
+        function setFeedback(message, type = "") { formFeedback.textContent = message; formFeedback.className = type ? `feedback ${type}` : "feedback"; }
+        function refreshQuestionLabels() { document.querySelectorAll(".question-editor").forEach((editor, index) => { editor.querySelector(".question-index").textContent = `Câu hỏi ${index + 1}`; }); }
+        function createQuestionEditor(data = {}) {
+            const wrapper = document.createElement("section");
+            wrapper.className = "question-editor";
+            wrapper.innerHTML = `<div class="question-head"><div class="question-index">Câu hỏi</div><button class="danger-btn remove-question" type="button">Xóa</button></div><label>Nội dung câu hỏi</label><textarea class="question-content" placeholder="Nhập nội dung câu hỏi">${data.content || ""}</textarea><div class="row-2"><div><label>Đáp án A</label><input class="option-a" type="text" value="${data.option_a || ""}" placeholder="Lựa chọn A"></div><div><label>Đáp án B</label><input class="option-b" type="text" value="${data.option_b || ""}" placeholder="Lựa chọn B"></div></div><div class="row-2"><div><label>Đáp án C</label><input class="option-c" type="text" value="${data.option_c || ""}" placeholder="Lựa chọn C"></div><div><label>Đáp án D</label><input class="option-d" type="text" value="${data.option_d || ""}" placeholder="Lựa chọn D"></div></div><label>Đáp án đúng</label><select class="correct-option"><option value="A" ${data.correct_option === "A" ? "selected" : ""}>A</option><option value="B" ${data.correct_option === "B" ? "selected" : ""}>B</option><option value="C" ${data.correct_option === "C" ? "selected" : ""}>C</option><option value="D" ${data.correct_option === "D" ? "selected" : ""}>D</option></select>`;
+            questionContainer.appendChild(wrapper);
+            refreshQuestionLabels();
+        }
+        function resetBuilder() {
+            editingQuizIdInput.value = "";
+            builderTitle.textContent = "Tạo đề thi mới";
+            submitButton.textContent = "Tạo đề thi";
+            cancelEditButton.hidden = true;
+            document.getElementById("title").value = "";
+            document.getElementById("joinCode").value = "";
+            document.getElementById("timeLimit").value = "15";
+            questionContainer.innerHTML = "";
+            createQuestionEditor();
+            createQuestionEditor();
+            setFeedback("");
+        }
+        function buildPayload() {
+            const title = document.getElementById("title").value.trim();
+            const joinCode = document.getElementById("joinCode").value.trim();
+            const timeLimit = document.getElementById("timeLimit").value;
+            const questions = [...document.querySelectorAll(".question-editor")].map((editor) => ({ content: editor.querySelector(".question-content").value.trim(), option_a: editor.querySelector(".option-a").value.trim(), option_b: editor.querySelector(".option-b").value.trim(), option_c: editor.querySelector(".option-c").value.trim(), option_d: editor.querySelector(".option-d").value.trim(), correct_option: editor.querySelector(".correct-option").value }));
+            if (!title) { setFeedback("Bạn cần nhập tên đề thi.", "error"); return null; }
+            if (questions.length === 0) { setFeedback("Cần ít nhất 1 câu hỏi.", "error"); return null; }
+            return { title, join_code: joinCode, time_limit: Number(timeLimit), questions };
+        }
+        function loadQuizForEdit(quizId) {
+            const quiz = quizzesData.find((item) => item.id === quizId);
+            if (!quiz) return;
+            editingQuizIdInput.value = String(quiz.id);
+            builderTitle.textContent = `Sửa đề thi: ${quiz.title}`;
+            submitButton.textContent = "Cập nhật đề thi";
+            cancelEditButton.hidden = false;
+            document.getElementById("title").value = quiz.title;
+            document.getElementById("joinCode").value = quiz.join_code;
+            document.getElementById("timeLimit").value = String(quiz.time_limit);
+            questionContainer.innerHTML = "";
+            quiz.questions.forEach((question) => createQuestionEditor(question));
+            setFeedback("Đã nạp đề thi lên form chỉnh sửa.", "success");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        async function deleteQuiz(quizId, quizTitle) {
+            const confirmed = window.confirm(`Bạn chắc chắn muốn xóa đề thi "${quizTitle}"?`);
+            if (!confirmed) return;
+            try {
+                const response = await fetch(`/api/teacher/quizzes/${quizId}`, { method:"DELETE", headers:{ "Content-Type":"application/json" } });
+                const payload = await response.json();
+                if (payload.status !== "success") throw new Error(payload.message || "Không thể xóa đề thi.");
+                window.location.reload();
+            } catch (error) {
+                setFeedback(error.message || "Có lỗi xảy ra khi xóa đề thi.", "error");
+            }
+        }
+        addQuestionButton.addEventListener("click", () => createQuestionEditor());
+        cancelEditButton.addEventListener("click", resetBuilder);
+        questionContainer.addEventListener("click", (event) => {
+            if (!event.target.classList.contains("remove-question")) return;
+            const editor = event.target.closest(".question-editor");
+            if (editor) { editor.remove(); refreshQuestionLabels(); }
+        });
+        quizBuilder.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const payload = buildPayload();
+            if (!payload) return;
+            const editingQuizId = editingQuizIdInput.value.trim();
+            const method = editingQuizId ? "PUT" : "POST";
+            const url = editingQuizId ? `/api/teacher/quizzes/${editingQuizId}` : "/api/teacher/quizzes";
+            submitButton.disabled = true;
+            setFeedback(editingQuizId ? "Đang cập nhật đề thi..." : "Đang tạo đề thi...", "success");
+            try {
+                const response = await fetch(url, { method, headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) });
+                const result = await response.json();
+                if (result.status !== "success") throw new Error(result.message || "Không lưu được đề thi.");
+                window.location.reload();
+            } catch (error) {
+                submitButton.disabled = false;
+                setFeedback(error.message || "Có lỗi xảy ra khi lưu đề thi.", "error");
+            }
+        });
+        resetBuilder();
+        window.loadQuizForEdit = loadQuizForEdit;
+        window.deleteQuiz = deleteQuiz;
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập Sinh Viên</title>
+    <style>
+        :root { --ink:#17324f; --muted:#5e7388; --accent:#cb5b3e; --accent-strong:#994128; --danger:#b34b3b; --surface:rgba(255,255,255,.92); --line:rgba(23,50,79,.12); --font-ui:"Noto Sans","Segoe UI","Tahoma","Arial",sans-serif; --font-display:"Noto Sans","Segoe UI Semibold","Segoe UI","Tahoma","Arial",sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; display:grid; place-items:center; padding:18px; font-family:var(--font-ui); color:var(--ink); text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; background:radial-gradient(circle at top right, rgba(203,91,62,.18), transparent 28%),radial-gradient(circle at bottom left, rgba(35,109,155,.16), transparent 34%),linear-gradient(145deg,#f7eee2,#dbe8f2); }
+        .page { width:min(1100px,100%); display:grid; grid-template-columns:1.04fr .96fr; gap:24px; align-items:stretch; }
+        .panel { background:var(--surface); border-radius:30px; border:1px solid rgba(255,255,255,.84); box-shadow:0 18px 50px rgba(23,50,79,.12); backdrop-filter:blur(10px); }
+        .hero,.form-wrap { padding:30px; }
+        .eyebrow { margin:0 0 12px; color:var(--accent-strong); letter-spacing:.08em; text-transform:uppercase; font-weight:800; }
+        h1,h2 { margin-top:0; font-family:var(--font-display); }
+        h1 { font-size:clamp(2rem,4vw,3.4rem); line-height:1.08; margin-bottom:14px; }
+        p { color:var(--muted); line-height:1.75; }
+        .feature-list { display:grid; gap:14px; margin-top:22px; }
+        .feature { padding:16px 18px; border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,.9); }
+        .feature strong { display:block; margin-bottom:6px; color:var(--ink); }
+        label { display:block; margin-bottom:8px; font-weight:700; }
+        input,button { font:inherit; }
+        input { width:100%; min-height:52px; margin-bottom:16px; padding:14px 16px; border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.98); color:var(--ink); }
+        input:focus { outline:3px solid rgba(203,91,62,.15); border-color:rgba(203,91,62,.4); }
+        .primary-btn { width:100%; min-height:54px; border:none; border-radius:18px; background:linear-gradient(135deg,var(--accent),#df8c46); color:#fffaf5; font-size:1rem; font-weight:800; cursor:pointer; box-shadow:0 16px 28px rgba(203,91,62,.24); }
+        .error { min-height:22px; margin-top:10px; color:var(--danger); font-weight:700; }
+        .links { display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+        .links a,.badge { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 14px; border-radius:999px; text-decoration:none; font-weight:700; }
+        .links a { border:1px solid var(--line); background:rgba(255,255,255,.94); color:var(--ink); }
+        .badge { background:rgba(28,110,84,.1); color:#1c6e54; }
+        @media (max-width:920px) { .page { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <section class="panel hero">
+            <p class="eyebrow">Nhóm 02</p>
+            <h1>Đăng nhập sinh viên trước khi vào phòng thi.</h1>
+            <p>Trang này giúp hệ thống ghi nhận đúng danh tính của sinh viên trong suốt quá trình làm bài. Sau khi đăng nhập, bạn chỉ cần nhập mã phòng để bắt đầu kiểm tra trực tuyến.</p>
+            <div class="feature-list">
+                <article class="feature">
+                    <strong>Quản lý đúng người làm bài</strong>
+                    <span>Giảng viên sẽ nhìn thấy họ tên và mã sinh viên trong bảng kết quả.</span>
+                </article>
+                <article class="feature">
+                    <strong>Trải nghiệm liền mạch</strong>
+                    <span>Bạn không cần nhập lại thông tin cá nhân ở mỗi lần vào phòng thi.</span>
+                </article>
+                <article class="feature">
+                    <strong>Phù hợp cho demo và báo cáo</strong>
+                    <span>Luồng đăng nhập, vào phòng, làm bài và chấm điểm giờ đã rõ ràng hơn.</span>
+                </article>
+            </div>
+            <div class="links">
+                <a href="/teacher">Trang giảng viên</a>
+                <div class="badge">Dùng cho lớp học, quiz và kiểm tra trực tuyến</div>
+            </div>
+        </section>
+        <main class="panel form-wrap">
+            <h2>Thông tin sinh viên</h2>
+            <p>Nhập đúng họ tên và mã sinh viên để tiếp tục tới trang tham gia bài kiểm tra.</p>
+            <form method="post">
+                <label for="student_name">Họ và tên</label>
+                <input id="student_name" name="student_name" type="text" value="{{ default_name }}" placeholder="Ví dụ: Nguyễn Văn A" required>
+                <label for="student_code">Mã sinh viên</label>
+                <input id="student_code" name="student_code" type="text" value="{{ default_code }}" placeholder="Ví dụ: 22123456" required>
+                <button class="primary-btn" type="submit">Tiếp tục vào hệ thống</button>
+                <div class="error">{{ error_message }}</div>
+            </form>
+        </main>
+    </div>
+</body>
+</html>

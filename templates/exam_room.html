@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Làm Bài Kiểm Tra</title>
+    <style>
+        :root { --ink:#1f3552; --muted:#63748a; --line:rgba(31,53,82,.12); --surface:rgba(255,255,255,.92); --surface-strong:#fffdfa; --accent:#c66041; --success:#1f795e; --danger:#b34b3b; --warning:#9c6b1e; --font-ui:"Noto Sans","Segoe UI","Tahoma","Arial",sans-serif; --font-display:"Noto Sans","Segoe UI Semibold","Segoe UI","Tahoma","Arial",sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; font-family:var(--font-ui); color:var(--ink); text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; background:radial-gradient(circle at top left, rgba(198,96,65,.16), transparent 30%),radial-gradient(circle at right, rgba(35,109,155,.12), transparent 34%),linear-gradient(165deg,#f7efe4,#dfe9f2 58%,#f4efe6); }
+        .page { max-width:1180px; margin:0 auto; padding:24px 18px 48px; }
+        .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+        .topbar a,.identity { color:var(--ink); text-decoration:none; font-weight:700; }
+        .identity { padding:10px 16px; border-radius:999px; background:rgba(255,255,255,.7); border:1px solid var(--line); }
+        .layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:22px; align-items:start; }
+        .panel { background:var(--surface); border-radius:28px; border:1px solid rgba(255,255,255,.8); box-shadow:0 18px 50px rgba(31,53,82,.12); backdrop-filter:blur(10px); }
+        .hero { padding:26px 28px 20px; margin-bottom:18px; }
+        .hero h1 { margin:0 0 10px; font-family:var(--font-display); font-size:clamp(1.8rem,3vw,2.6rem); line-height:1.12; }
+        .eyebrow { margin:0 0 10px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-weight:800; }
+        .hero p { margin:0; color:var(--muted); line-height:1.7; }
+        .banner { margin-top:16px; padding:14px 16px; border-radius:18px; background:rgba(156,107,30,.12); color:var(--warning); font-weight:700; }
+        .questions { padding:0 28px 28px; }
+        .question-card { padding:22px; margin-bottom:18px; border-radius:22px; border:1px solid var(--line); background:var(--surface-strong); }
+        .question-card h2 { margin:0 0 14px; font-size:1.06rem; line-height:1.6; font-family:var(--font-display); }
+        .options { display:grid; gap:10px; }
+        .option { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border-radius:16px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+        .choice-tag { min-width:28px; min-height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:rgba(198,96,65,.1); color:var(--accent); font-weight:800; }
+        .actions { display:flex; justify-content:flex-end; }
+        .submit-btn { min-height:52px; padding:0 24px; border:none; border-radius:18px; background:linear-gradient(135deg,var(--accent),#e08a49); color:#fffaf4; font-size:1rem; font-weight:800; cursor:pointer; }
+        .submit-btn:disabled { opacity:.7; cursor:wait; }
+        .sidebar { position:sticky; top:20px; padding:22px; }
+        .stats { display:grid; gap:14px; }
+        .stat-card { padding:16px; border-radius:18px; border:1px solid var(--line); background:rgba(255,255,255,.92); }
+        .stat-label { display:block; margin-bottom:8px; color:var(--muted); }
+        .stat-value { font-size:1.3rem; font-weight:800; line-height:1.35; }
+        .timer.is-urgent { color:var(--danger); }
+        .result-panel { margin-top:18px; padding:26px 28px; }
+        .result-summary { padding:22px; margin-bottom:18px; border-radius:22px; border:1px solid rgba(31,121,94,.18); background:rgba(31,121,94,.1); }
+        .result-summary h2 { margin:0 0 10px; color:var(--success); font-family:var(--font-display); font-size:2rem; }
+        .review-item { padding:18px; margin-bottom:14px; border-radius:18px; border-left:6px solid var(--success); border:1px solid var(--line); background:rgba(255,255,255,.94); }
+        .review-item.is-wrong { border-left-color:var(--danger); }
+        .error-state { padding:24px; text-align:center; color:var(--danger); }
+        button,input { font:inherit; }
+        @media (max-width:960px) { .layout { grid-template-columns:1fr; } .sidebar { position:static; } }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="topbar">
+            <a href="/student">← Quay lại trang sinh viên</a>
+            <div class="identity">{{ student_name }} | {{ student_code }}</div>
+            <a href="/teacher">Trang giảng viên</a>
+        </div>
+        <div class="layout">
+            <main>
+                <section class="panel hero">
+                    <p class="eyebrow">Phòng thi {{ join_code }}</p>
+                    <h1 id="quizTitle">Đang tải đề thi...</h1>
+                    <p id="quizDescription">Hệ thống đang nạp dữ liệu bài thi, vui lòng chờ trong giây lát.</p>
+                    <div class="banner" id="antiCheatBanner">Chống gian lận cơ bản đang bật: hệ thống sẽ ghi nhận khi bạn rời khỏi màn hình thi.</div>
+                </section>
+                <section class="panel questions">
+                    <form id="quizForm"></form>
+                    <div class="actions" id="quizActions" hidden><button class="submit-btn" id="submitButton" type="button">Nộp bài</button></div>
+                    <div class="error-state" id="errorState" hidden></div>
+                </section>
+                <section class="panel result-panel" id="resultPanel" hidden></section>
+            </main>
+            <aside class="panel sidebar">
+                <div class="stats">
+                    <div class="stat-card"><span class="stat-label">Sinh viên</span><div class="stat-value" id="studentNameValue">-</div></div>
+                    <div class="stat-card"><span class="stat-label">Mã sinh viên</span><div class="stat-value" id="studentCodeValue">-</div></div>
+                    <div class="stat-card"><span class="stat-label">Thời gian còn lại</span><div class="stat-value timer" id="timerValue">--:--</div></div>
+                    <div class="stat-card"><span class="stat-label">Tiến độ</span><div class="stat-value" id="progressValue">0 / 0</div></div>
+                    <div class="stat-card"><span class="stat-label">Cảnh báo rời màn hình</span><div class="stat-value" id="warningValue">0</div></div>
+                </div>
+            </aside>
+        </div>
+    </div>
+    <script>
+        const joinCode = "{{ join_code }}";
+        const studentName = "{{ student_name }}";
+        const studentCode = "{{ student_code }}";
+        let quizData = null, cheatCount = 0, isFinished = false, isSubmitting = false, timerId = null, remainingSeconds = 0;
+        const quizTitle = document.getElementById("quizTitle");
+        const quizDescription = document.getElementById("quizDescription");
+        const antiCheatBanner = document.getElementById("antiCheatBanner");
+        const quizForm = document.getElementById("quizForm");
+        const quizActions = document.getElementById("quizActions");
+        const submitButton = document.getElementById("submitButton");
+        const errorState = document.getElementById("errorState");
+        const resultPanel = document.getElementById("resultPanel");
+        const studentNameValue = document.getElementById("studentNameValue");
+        const studentCodeValue = document.getElementById("studentCodeValue");
+        const timerValue = document.getElementById("timerValue");
+        const progressValue = document.getElementById("progressValue");
+        const warningValue = document.getElementById("warningValue");
+        studentNameValue.textContent = studentName;
+        studentCodeValue.textContent = studentCode;
+        function formatTime(totalSeconds) { const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; }
+        function updateProgress() { if (!quizData) { progressValue.textContent = "0 / 0"; return; } const answered = quizData.questions.filter((question) => document.querySelector(`input[name="q_${question.id}"]:checked`)).length; progressValue.textContent = `${answered} / ${quizData.questions.length}`; }
+        function updateTimer() { timerValue.textContent = formatTime(Math.max(remainingSeconds, 0)); timerValue.classList.toggle("is-urgent", remainingSeconds <= 60); }
+        function showError(message) { errorState.hidden = false; errorState.textContent = message; }
+        function renderQuiz() {
+            quizTitle.textContent = quizData.title;
+            quizDescription.textContent = `Mã phòng ${quizData.join_code} | ${quizData.question_count} câu hỏi | ${quizData.time_limit} phút làm bài`;
+            quizForm.innerHTML = quizData.questions.map((question, index) => {
+                const optionsMarkup = Object.entries(question.options).map(([key, value]) => `<label class="option"><input type="radio" name="q_${question.id}" value="${key}"><span class="choice-tag">${key}</span><span>${value}</span></label>`).join("");
+                return `<article class="question-card"><h2>Câu ${index + 1}. ${question.content}</h2><div class="options">${optionsMarkup}</div></article>`;
+            }).join("");
+            quizActions.hidden = quizData.questions.length === 0;
+            updateProgress();
+        }
+        function collectAnswers() { const answers = {}; quizData.questions.forEach((question) => { const checked = document.querySelector(`input[name="q_${question.id}"]:checked`); answers[String(question.id)] = checked ? checked.value : null; }); return answers; }
+        function renderResult(result) {
+            isFinished = true;
+            quizForm.hidden = true;
+            quizActions.hidden = true;
+            timerValue.textContent = "Đã nộp";
+            antiCheatBanner.textContent = "Bài làm đã được nộp thành công.";
+            const reviewItems = result.details.map((item, index) => `<article class="review-item ${item.is_correct ? "" : "is-wrong"}"><strong>Câu ${index + 1}: ${item.question}</strong><p>Bạn chọn: <strong>${item.your_answer || "Bỏ trống"}</strong> - ${item.your_answer_text}</p><p>Đáp án đúng: <strong>${item.correct_answer}</strong> - ${item.correct_answer_text}</p><p>${item.is_correct ? "Kết quả: chính xác." : "Kết quả: chưa đúng."}</p></article>`).join("");
+            resultPanel.hidden = false;
+            resultPanel.innerHTML = `<div class="result-summary"><h2>${result.score} / 10 điểm</h2><p>Sinh viên: <strong>${result.student_name}</strong> | Mã sinh viên: <strong>${result.student_code}</strong></p><p>Bạn trả lời đúng <strong>${result.correct_count}</strong> / <strong>${result.total}</strong> câu.</p><p>Số lần cảnh báo rời màn hình: <strong>${result.cheat_count}</strong>.</p><p>Thời điểm nộp bài: <strong>${result.submitted_at}</strong>.</p></div>${reviewItems}`;
+        }
+        function startTimer(minutes) {
+            remainingSeconds = Number(minutes) * 60;
+            updateTimer();
+            timerId = window.setInterval(() => {
+                remainingSeconds -= 1;
+                updateTimer();
+                if (remainingSeconds <= 0) {
+                    window.clearInterval(timerId);
+                    timerId = null;
+                    antiCheatBanner.textContent = "Đã hết giờ. Hệ thống đang tự động nộp bài.";
+                    submitQuiz(true);
+                }
+            }, 1000);
+        }
+        async function submitQuiz(forceSubmit = false) {
+            if (!quizData || isFinished || isSubmitting) return;
+            if (!forceSubmit) {
+                const unanswered = quizData.questions.length - quizData.questions.filter((question) => document.querySelector(`input[name="q_${question.id}"]:checked`)).length;
+                const confirmed = window.confirm(unanswered > 0 ? `Bạn còn ${unanswered} câu chưa trả lời. Vẫn nộp bài?` : "Bạn chắc chắn muốn nộp bài?");
+                if (!confirmed) return;
+            }
+            isSubmitting = true;
+            submitButton.disabled = true;
+            if (timerId) { window.clearInterval(timerId); timerId = null; }
+            try {
+                const response = await fetch("/api/submit-quiz", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ join_code:joinCode, student_name:studentName, student_code:studentCode, cheat_count:cheatCount, answers:collectAnswers() }) });
+                const payload = await response.json();
+                if (payload.status !== "success") throw new Error(payload.message || "Không thể nộp bài.");
+                renderResult(payload);
+            } catch (error) {
+                isSubmitting = false;
+                submitButton.disabled = false;
+                showError(error.message || "Có lỗi xảy ra khi nộp bài.");
+            }
+        }
+        async function fetchQuiz() {
+            try {
+                const response = await fetch(`/api/get-quiz/${encodeURIComponent(joinCode)}`);
+                const payload = await response.json();
+                if (payload.status !== "success") throw new Error(payload.message || "Không tải được đề thi.");
+                quizData = payload.data;
+                renderQuiz();
+                startTimer(quizData.time_limit);
+            } catch (error) {
+                quizTitle.textContent = "Không mở được bài thi";
+                quizDescription.textContent = "Vui lòng quay lại trang trước và kiểm tra lại mã phòng thi.";
+                showError(error.message || "Có lỗi xảy ra khi tải bài thi.");
+            }
+        }
+        document.addEventListener("change", (event) => { if (event.target.matches('input[type="radio"]')) updateProgress(); });
+        document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && !isFinished) { cheatCount += 1; warningValue.textContent = String(cheatCount); antiCheatBanner.textContent = `Cảnh báo: bạn vừa rời khỏi màn hình thi. Tổng số lần ghi nhận: ${cheatCount}.`; } });
+        submitButton.addEventListener("click", () => submitQuiz(false));
+        fetchQuiz();
+    </script>
+</body>
+</html>

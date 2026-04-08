@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nền tảng Trắc nghiệm & Kiểm tra</title>
+    <style>
+        :root {
+            --bg-start: #f7efe2;
+            --bg-end: #dbe7f3;
+            --ink: #16324f;
+            --muted: #5b7188;
+            --accent: #c55b3c;
+            --accent-dark: #8f3c25;
+            --card: rgba(255, 255, 255, 0.88);
+            --line: rgba(22, 50, 79, 0.12);
+            --success: #176b52;
+            --danger: #a73d33;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Verdana", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top right, rgba(197, 91, 60, 0.18), transparent 30%),
+                radial-gradient(circle at bottom left, rgba(41, 112, 159, 0.18), transparent 35%),
+                linear-gradient(145deg, var(--bg-start), var(--bg-end));
+        }
+
+        .page {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 32px 20px 56px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            font-family: "Cambria", "Georgia", serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.65);
+            color: var(--ink);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr 0.9fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .hero-copy {
+            padding-top: 24px;
+        }
+
+        .eyebrow {
+            margin: 0 0 12px;
+            color: var(--accent-dark);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            font-family: "Cambria", "Georgia", serif;
+            font-size: clamp(2.4rem, 5vw, 4.2rem);
+            line-height: 1.05;
+        }
+
+        .lead {
+            margin: 0;
+            max-width: 620px;
+            color: var(--muted);
+            font-size: 1.08rem;
+            line-height: 1.75;
+        }
+
+        .join-card,
+        .info-card {
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 28px;
+            box-shadow: 0 20px 55px rgba(22, 50, 79, 0.12);
+        }
+
+        .join-card {
+            padding: 28px;
+        }
+
+        .join-card h2,
+        .info-card h3 {
+            margin-top: 0;
+            font-family: "Cambria", "Georgia", serif;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            min-height: 52px;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--ink);
+            font-size: 1rem;
+            margin-bottom: 18px;
+        }
+
+        input:focus {
+            outline: 3px solid rgba(197, 91, 60, 0.18);
+            border-color: rgba(197, 91, 60, 0.45);
+        }
+
+        .primary-btn {
+            width: 100%;
+            min-height: 54px;
+            border: none;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--accent), #df8a44);
+            color: #fffaf4;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 16px 28px rgba(197, 91, 60, 0.24);
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 30px rgba(197, 91, 60, 0.3);
+        }
+
+        .hint {
+            margin: 16px 0 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .status {
+            min-height: 24px;
+            margin-top: 16px;
+            font-weight: 700;
+        }
+
+        .status.error {
+            color: var(--danger);
+        }
+
+        .status.success {
+            color: var(--success);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 28px;
+        }
+
+        .info-card {
+            padding: 20px;
+        }
+
+        .info-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(22, 107, 82, 0.1);
+            color: var(--success);
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 920px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="topbar">
+            <div class="brand">Nền tảng Trắc nghiệm & Kiểm tra</div>
+            <a class="nav-link" href="/teacher">Trang giảng viên</a>
+        </div>
+
+        <section class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Nhóm 02</p>
+                <h1>Vào phòng thi nhanh, làm bài rõ ràng, nhận kết quả minh bạch.</h1>
+                <p class="lead">
+                    Hệ thống hỗ trợ nhập mã phòng, làm bài trắc nghiệm có đồng hồ đếm ngược,
+                    chấm điểm tự động và hiển thị chi tiết đúng sai ngay sau khi nộp bài.
+                </p>
+                <div class="info-grid">
+                    <article class="info-card">
+                        <h3>Mã phòng</h3>
+                        <p>Nhập mã phòng do giảng viên cung cấp để vào đúng đề thi trong vài giây.</p>
+                    </article>
+                    <article class="info-card">
+                        <h3>Đồng hồ đếm ngược</h3>
+                        <p>Theo dõi thời gian còn lại liên tục, hệ thống sẽ tự động nộp bài khi hết giờ.</p>
+                    </article>
+                    <article class="info-card">
+                        <h3>Chấm điểm tự động</h3>
+                        <p>Xem điểm, đáp án đúng và thông tin từng câu hỏi một cách rõ ràng.</p>
+                    </article>
+                </div>
+            </div>
+
+            <aside class="join-card">
+                <h2>Bắt đầu bài kiểm tra</h2>
+                <label for="studentName">Họ và tên</label>
+                <input id="studentName" type="text" placeholder="Nhập tên sinh viên">
+
+                <label for="joinCode">Mã phòng thi</label>
+                <input id="joinCode" type="text" placeholder="Ví dụ: NHOM02" maxlength="10">
+
+                <button class="primary-btn" id="joinButton" type="button">Vào phòng ngay</button>
+
+                <div class="status" id="statusMessage"></div>
+
+                <p class="hint">
+                    Bạn có thể thử ngay với mã demo <strong>NHOM02</strong>.
+                </p>
+                <div class="badge">Chống gian lận cơ bản: cảnh báo khi rời khỏi màn hình thi</div>
+            </aside>
+        </section>
+    </div>
+
+    <script>
+        const studentNameInput = document.getElementById("studentName");
+        const joinCodeInput = document.getElementById("joinCode");
+        const joinButton = document.getElementById("joinButton");
+        const statusMessage = document.getElementById("statusMessage");
+
+        const savedName = localStorage.getItem("student_name");
+        if (savedName) {
+            studentNameInput.value = savedName;
+        }
+
+        function setStatus(message, type = "") {
+            statusMessage.textContent = message;
+            statusMessage.className = type ? `status ${type}` : "status";
+        }
+
+        async function joinRoom() {
+            const studentName = studentNameInput.value.trim();
+            const joinCode = joinCodeInput.value.trim().toUpperCase();
+
+            if (!studentName) {
+                setStatus("Bạn cần nhập họ và tên trước khi vào phòng thi.", "error");
+                studentNameInput.focus();
+                return;
+            }
+
+            if (!joinCode) {
+                setStatus("Bạn cần nhập mã phòng thi.", "error");
+                joinCodeInput.focus();
+                return;
+            }
+
+            joinButton.disabled = true;
+            setStatus("Đang kiểm tra mã phòng thi...", "success");
+
+            try {
+                const response = await fetch(`/api/check-room/${encodeURIComponent(joinCode)}`);
+                const payload = await response.json();
+
+                if (payload.status !== "success") {
+                    setStatus(payload.message || "Không thể vào phòng thi.", "error");
+                    joinButton.disabled = false;
+                    return;
+                }
+
+                localStorage.setItem("student_name", studentName);
+                sessionStorage.setItem("student_name", studentName);
+
+                const targetUrl = `/quiz-room/${joinCode}?student_name=${encodeURIComponent(studentName)}`;
+                window.location.href = targetUrl;
+            } catch (error) {
+                setStatus("Không kết nối được đến hệ thống. Vui lòng thử lại.", "error");
+                joinButton.disabled = false;
+            }
+        }
+
+        joinButton.addEventListener("click", joinRoom);
+        joinCodeInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                joinRoom();
+            }
+        });
+        studentNameInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                joinRoom();
+            }
+        });
+    </script>
+</body>
+</html>

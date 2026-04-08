@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống thi trực tuyến - Nhóm 02</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .join-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        input { width: 100%; padding: 12px; margin: 20px 0; border: 2px solid #ddd; border-radius: 6px; font-size: 1.1em; text-align: center; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="join-box">
+        <h2>VÀO PHÒNG THI</h2>
+        <p>Nhập mã phòng thi do giảng viên cung cấp</p>
+        <input type="text" id="joinCode" placeholder="Ví dụ: NHOM02">
+        <button onclick="checkRoom()">BẮT ĐẦU</button>
+    </div>
+    <script>
+        async function checkRoom() {
+            const code = document.getElementById('joinCode').value.toUpperCase();
+            const res = await fetch(`/api/check-room/${code}`);
+            const result = await res.json();
+            if(result.status === 'success') window.location.href = `/quiz-room/${code}`;
+            else alert(result.message);
+        }
+    </script>
+</body>
+</html>
