@@ -26,6 +26,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
 
+PRESET_QUIZ_SET_COUNT = 20
+PRESET_QUESTIONS_PER_SET = 20
+PRESET_QUIZ_TIME_LIMIT = 25
+PRESET_SET_JOIN_CODES = [f"DE{i:02d}" for i in range(1, PRESET_QUIZ_SET_COUNT + 1)]
+GROUP_JOIN_CODES = [f"NHOM{i:02d}" for i in range(1, 5)]
+PRESET_RANDOM_SEED = 20260510
+
 QUESTION_DIFFICULTIES = ["Cơ bản", "Trung bình", "Nâng cao"]
 LEGACY_TEXT_FIXES = {
     "Kiem tra Tin hoc dai cuong": "Kiểm tra Tin học đại cương",
@@ -303,6 +310,265 @@ def get_sample_questions() -> list[dict[str, str]]:
             "difficulty": "Trung bình",
         },
     ]
+
+
+def get_seed_question_bank_questions() -> list[dict[str, str]]:
+    questions = list(get_sample_questions())
+    questions.extend(
+        [
+            {
+                "content": "Thiáº¿t bá»‹ nÃ o dÃ¹ng Ä‘á»ƒ hiá»ƒn thá»‹ hÃ¬nh áº£nh tá»« mÃ¡y tÃ­nh?",
+                "option_a": "MÃ¡y in",
+                "option_b": "MÃ n hÃ¬nh",
+                "option_c": "Scanner",
+                "option_d": "USB",
+                "correct_option": "B",
+                "category": "Tin há»c Ä‘áº¡i cÆ°Æ¡ng",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "Há»‡ Ä‘iá»u hÃ nh cÃ³ chá»©c nÄƒng chÃ­nh nÃ o?",
+                "option_a": "Quáº£n lÃ½ tÃ i nguyÃªn vÃ  Ä‘iá»u phá»‘i hoáº¡t Ä‘á»™ng mÃ¡y tÃ­nh",
+                "option_b": "Chá»‰ dÃ¹ng Ä‘á»ƒ gá»­i email",
+                "option_c": "Chá»‰ dÃ¹ng Ä‘á»ƒ váº½ hÃ¬nh",
+                "option_d": "Chá»‰ dÃ¹ng Ä‘á»ƒ in áº¥n",
+                "correct_option": "A",
+                "category": "Tin há»c Ä‘áº¡i cÆ°Æ¡ng",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "Bá»™ xá»­ lÃ½ trung tÃ¢m cá»§a mÃ¡y tÃ­nh lÃ  gÃ¬?",
+                "option_a": "RAM",
+                "option_b": "CPU",
+                "option_c": "SSD",
+                "option_d": "GPU",
+                "correct_option": "B",
+                "category": "Tin há»c Ä‘áº¡i cÆ°Æ¡ng",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "Thiáº¿t bá»‹ nÃ o thÆ°á»ng dÃ¹ng Ä‘á»ƒ lÆ°u trá»¯ dá»¯ liá»‡u lÃ¢u dÃ i?",
+                "option_a": "RAM",
+                "option_b": "Cache",
+                "option_c": "SSD",
+                "option_d": "Register",
+                "correct_option": "C",
+                "category": "Tin há»c Ä‘áº¡i cÆ°Æ¡ng",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "DNS cÃ³ nhiá»‡m vá»¥ gÃ¬?",
+                "option_a": "PhÃ¢n giáº£i tÃªn miá»n thÃ nh Ä‘á»‹a chá»‰ IP",
+                "option_b": "MÃ£ hÃ³a toÃ n bá»™ á»• cÃ¡m",
+                "option_c": "Sáº¡c pin laptop",
+                "option_d": "Chá»‘ng rung chuá»™t",
+                "correct_option": "A",
+                "category": "Máº¡ng mÃ¡y tÃ­nh",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "Router thÆ°á»ng dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "Äá»‹nh tuyáº¿n dá»¯ liá»‡u giá»¯a cÃ¡c máº¡ng",
+                "option_b": "In tÃ i liá»‡u",
+                "option_c": "Chá»¥p áº£nh webcam",
+                "option_d": "TÄƒng Ã¢m lÆ°á»£ng loa",
+                "correct_option": "A",
+                "category": "Máº¡ng mÃ¡y tÃ­nh",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "MÃ´ hÃ¬nh client-server mÃ´ táº£ Ä‘iá»u gÃ¬?",
+                "option_a": "Sá»± trao Ä‘á»•i giá»¯a mÃ¡y cung cáº¥p vÃ  mÃ¡y yÃªu cáº§u dá»‹ch vá»¥",
+                "option_b": "CÃ¡ch vÄƒn báº£n Ä‘Æ°á»£c in ra giáº¥y",
+                "option_c": "QuÃ¡ trÃ¬nh nÃ©n áº£nh JPG",
+                "option_d": "Cáº¥u táº¡o cá»§a pin laptop",
+                "correct_option": "A",
+                "category": "Máº¡ng mÃ¡y tÃ­nh",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "Firewall dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "Lá»c vÃ  kiá»ƒm soÃ¡t lÆ°u lÆ°á»£ng máº¡ng",
+                "option_b": "Táº¡o slide thuyáº¿t trÃ¬nh",
+                "option_c": "LÆ°u file PDF",
+                "option_d": "Táº¡o báº£ng tÃ­nh",
+                "correct_option": "A",
+                "category": "Báº£o máº­t",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "Lá»‡nh SQL nÃ o dÃ¹ng Ä‘á»ƒ thÃªm báº£n ghi má»›i?",
+                "option_a": "SELECT",
+                "option_b": "INSERT",
+                "option_c": "DROP",
+                "option_d": "ALTER",
+                "correct_option": "B",
+                "category": "CÆ¡ sá»Ÿ dá»¯ liá»‡u",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "Lá»‡nh SQL nÃ o dÃ¹ng Ä‘á»ƒ cáº­p nháº­t dá»¯ liá»‡u?",
+                "option_a": "UPDATE",
+                "option_b": "SELECT",
+                "option_c": "COUNT",
+                "option_d": "RENAME",
+                "correct_option": "A",
+                "category": "CÆ¡ sá»Ÿ dá»¯ liá»‡u",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "MÃ³i quan há»‡ 1-n trong CSDL nghÄ©a lÃ  gÃ¬?",
+                "option_a": "Má»™t báº£n ghi á»Ÿ báº£ng A liÃªn káº¿t vá»›i nhiá»u báº£n ghi á»Ÿ báº£ng B",
+                "option_b": "Má»i báº£ng chá»‰ cÃ³ má»™t cá»™t",
+                "option_c": "KhÃ´ng thá»ƒ cÃ³ khÃ³a ngoáº¡i",
+                "option_d": "KhÃ´ng thá»ƒ cÃ³ truy váº¥n",
+                "correct_option": "A",
+                "category": "CÆ¡ sá»Ÿ dá»¯ liá»‡u",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "KhÃ³a ngoáº¡i (Foreign Key) dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "LiÃªn káº¿t dá»¯ liá»‡u giá»¯a cÃ¡c báº£ng",
+                "option_b": "XÃ³a táº¥t cáº£ báº£ng",
+                "option_c": "Äáº·t máº­t kháº©u cho CSDL",
+                "option_d": "Táº¡o file backup PDF",
+                "correct_option": "A",
+                "category": "CÆ¡ sá»Ÿ dá»¯ liá»‡u",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "HÃ m COUNT() trong SQL dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "Äáº¿m sá»‘ báº£n ghi",
+                "option_b": "Sáº¯p xáº¿p táº£ng dáº§n",
+                "option_c": "XÃ³a báº£ng",
+                "option_d": "Thay Ä‘á»•i tÃªn cá»™t",
+                "correct_option": "A",
+                "category": "CÆ¡ sá»Ÿ dá»¯ liá»‡u",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "HÃ m trong láº­p trÃ¬nh dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "ÄÃ³ng gÃ³i má»™t nhÃ³m lá»‡nh cÃ³ thá»ƒ tÃ¡i sá»­ dá»¥ng",
+                "option_b": "Táº¯t mÃ¡y tÃ­nh",
+                "option_c": "NÃ©n file áº£nh",
+                "option_d": "Cáº¯m USB",
+                "correct_option": "A",
+                "category": "Láº­p trÃ¬nh cÆ¡ báº£n",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "Kiá»ƒu dá»¯ liá»‡u boolean thÆ°á»ng chá»©a giÃ¡ trá»‹ nÃ o?",
+                "option_a": "True/False",
+                "option_b": "1/2/3",
+                "option_c": "A/B/C",
+                "option_d": "ngÃ y/thÃ¡ng/nÄƒm",
+                "correct_option": "A",
+                "category": "Láº­p trÃ¬nh cÆ¡ báº£n",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "ToÃ¡n tá»­ so sÃ¡nh dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "So sÃ¡nh hai giÃ¡ trá»‹",
+                "option_b": "Náº¡p pin laptop",
+                "option_c": "Má»Ÿ trÃ¬nh duyá»‡t",
+                "option_d": "Chá»¥p áº£nh webcam",
+                "correct_option": "A",
+                "category": "Láº­p trÃ¬nh cÆ¡ báº£n",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "Thuáº­t toÃ¡n tÃ¬m kiáº¿m tuyáº¿n tÃ­nh hoáº¡t Ä‘á»™ng nhÆ° tháº¿ nÃ o?",
+                "option_a": "Duyá»‡t láº§n lÆ°á»£t tá»«ng pháº§n tá»­ Ä‘á»ƒ tÃ¬m giáº£ trá»‹",
+                "option_b": "LuÃ´n chia Ä‘Ã´i máº£ng",
+                "option_c": "Chá»‰ dÃ¹ng cho cÃ¢y",
+                "option_d": "Chá»‰ dÃ¹ng cho Ä‘á»“ há»a",
+                "correct_option": "A",
+                "category": "Thuáº­t toÃ¡n",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "Thuáº­t toÃ¡n sáº¯p xáº¿p dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "Sáº¯p xáº¿p dá»¯ liá»‡u theo thá»© tá»± mong muá»‘n",
+                "option_b": "XÃ³a táº¥t cáº£ file",
+                "option_c": "Káº¿t ná»‘i wifi",
+                "option_d": "NÃ©n file video",
+                "correct_option": "A",
+                "category": "Thuáº­t toÃ¡n",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "Big O dÃ¹ng Ä‘á»ƒ mÃ´ táº£ Ä‘iá»u gÃ¬?",
+                "option_a": "Äá»™ phá»©c táº¡p thá»i gian hoáº·c bá»™ nhá»› cá»§a thuáº­t toÃ¡n",
+                "option_b": "KÃ­ch thÆ°á»›c mÃ n hÃ¬nh",
+                "option_c": "Dung lÆ°á»£ng pin",
+                "option_d": "Tá»‘c Ä‘á»™ chuá»™t",
+                "correct_option": "A",
+                "category": "Thuáº­t toÃ¡n",
+                "difficulty": "NÃ¢ng cao",
+            },
+            {
+                "content": "HTML chá»§ yáº¿u dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "Táº¡o cáº¥u trÃºc trang web",
+                "option_b": "Quáº£n lÃ½ CSDL quan há»‡",
+                "option_c": "MÃ£ hÃ³a file exe",
+                "option_d": "Äiá»u khiá»ƒn router",
+                "correct_option": "A",
+                "category": "Web cÆ¡ báº£n",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "CSS chá»§ yáº¿u dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "Äá»‹nh dáº¡ng giao diá»‡n trang web",
+                "option_b": "Khá»Ÿi Ä‘á»™ng mÃ¡y chá»§",
+                "option_c": "Táº¡o khÃ³a chÃ­nh",
+                "option_d": "Xá»­ lÃ½ truy váº¥n SQL",
+                "correct_option": "A",
+                "category": "Web cÆ¡ báº£n",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "JavaScript trÃªn web thÆ°á»ng dÃ¹ng Ä‘á»ƒ lÃ m gÃ¬?",
+                "option_a": "Xá»­ lÃ½ tÆ°Æ¡ng tÃ¡c vÃ  logic trÃªn giao diá»‡n",
+                "option_b": "Thay pin mÃ¡y tÃ­nh",
+                "option_c": "Táº¡o cÃ¡p máº¡ng",
+                "option_d": "Sá»­a loa",
+                "correct_option": "A",
+                "category": "Web cÆ¡ báº£n",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "HTTPS khÃ¡c HTTP á»Ÿ Ä‘iá»ƒm nÃ o?",
+                "option_a": "HTTPS cÃ³ mÃ£ hÃ³a dá»¯ liá»‡u truyá»n táº£i",
+                "option_b": "HTTPS khÃ´ng dÃ¹ng trÃªn web",
+                "option_c": "HTTPS chá»‰ dÃ¹ng cho email",
+                "option_d": "HTTPS lÃ  há»‡ Ä‘iá»u hÃ nh",
+                "correct_option": "A",
+                "category": "Báº£o máº­t",
+                "difficulty": "Trung bÃ¬nh",
+            },
+            {
+                "content": "Máº­t kháº©u máº¡nh thÆ°á»ng nÃªn cÃ³ Ä‘iá»u gÃ¬?",
+                "option_a": "Chá»¯ hoa, chá»¯ thÆ°á»ng, sá»‘ vÃ  kÃ½ tá»± Ä‘áº·c biá»‡t",
+                "option_b": "Chá»‰ cÃ³ tÃªn cá»§a ngÆ°á»i dÃ¹ng",
+                "option_c": "Chá»‰ cÃ³ 4 kÃ½ tá»±",
+                "option_d": "LuÃ´n lÃ  123456",
+                "correct_option": "A",
+                "category": "Báº£o máº­t",
+                "difficulty": "CÆ¡ báº£n",
+            },
+            {
+                "content": "Phishing lÃ  hÃ¬nh thá»©c táº¥n cÃ´ng nÃ o?",
+                "option_a": "Lá»«a ngÆ°á»i dÃ¹ng cung cáº¥p thÃ´ng tin nháº¡y cáº£m",
+                "option_b": "Táº£i pin nhanh hÆ¡n",
+                "option_c": "NÃ©n file cá»±c Ä‘áº¡i",
+                "option_d": "TÄƒng sá»‘ lÆ°á»£ng RAM",
+                "correct_option": "A",
+                "category": "Báº£o máº­t",
+                "difficulty": "Trung bÃ¬nh",
+            },
+        ]
+    )
+    return questions
 
 
 def normalize_join_code(raw_value: str | None) -> str:
@@ -739,7 +1005,7 @@ def seed_default_teacher() -> bool:
 
 def seed_sample_question_bank() -> bool:
     changed = False
-    for question_data in get_sample_questions():
+    for question_data in get_seed_question_bank_questions():
         if QuestionBankItem.query.filter_by(content=question_data["content"]).first():
             continue
 
@@ -765,11 +1031,12 @@ def seed_sample_question_bank() -> bool:
 def seed_sample_data() -> bool:
     if Quiz.query.filter_by(join_code="NHOM02").first():
         return False
+    seed_questions = get_seed_question_bank_questions()[:PRESET_QUESTIONS_PER_SET]
 
     quiz = Quiz(
         title="Kiểm tra Tin học đại cương",
         join_code="NHOM02",
-        time_limit=20,
+        time_limit=PRESET_QUIZ_TIME_LIMIT,
     )
     db.session.add(quiz)
     db.session.flush()
@@ -785,7 +1052,7 @@ def seed_sample_data() -> bool:
                 option_d=question_data["option_d"],
                 correct_option=question_data["correct_option"],
             )
-            for question_data in get_sample_questions()
+            for question_data in seed_questions
         ]
     )
     db.session.commit()
@@ -797,12 +1064,12 @@ def sync_sample_quiz_if_needed() -> bool:
     if not quiz:
         return False
 
-    sample_questions = get_sample_questions()
+    sample_questions = get_seed_question_bank_questions()[:PRESET_QUESTIONS_PER_SET]
     if len(quiz.questions) >= len(sample_questions):
         return False
 
     quiz.title = "Kiểm tra Tin học đại cương"
-    quiz.time_limit = max(quiz.time_limit, 20)
+    quiz.time_limit = max(quiz.time_limit, PRESET_QUIZ_TIME_LIMIT)
 
     for question in list(quiz.questions):
         db.session.delete(question)
@@ -824,6 +1091,157 @@ def sync_sample_quiz_if_needed() -> bool:
     )
     db.session.commit()
     return True
+
+
+def build_preset_question_sets(
+    question_bank: list[dict[str, str]],
+    set_count: int = PRESET_QUIZ_SET_COUNT,
+    question_count: int = PRESET_QUESTIONS_PER_SET,
+) -> list[list[dict[str, str]]]:
+    if len(question_bank) < question_count:
+        raise ValueError("Ngân hàng câu hỏi chưa đủ để tạo bộ đề mẫu.")
+
+    used_signatures: set[tuple[str, ...]] = set()
+    preset_sets: list[list[dict[str, str]]] = []
+
+    for set_index in range(set_count):
+        for attempt in range(50):
+            rng = random.Random(PRESET_RANDOM_SEED + (set_index * 100) + attempt)
+            selected_questions = rng.sample(question_bank, question_count)
+            signature = tuple(sorted(question["content"] for question in selected_questions))
+            if signature in used_signatures:
+                continue
+
+            used_signatures.add(signature)
+            preset_sets.append(selected_questions)
+            break
+
+    if len(preset_sets) < set_count:
+        raise ValueError("KhÃ´ng táº¡o Ä‘á»§ sá»‘ bá»™ Ä‘á» máº«u tá»« ngÃ¢n hÃ ng cÃ¢u há»i hiá»‡n táº¡i.")
+
+    return preset_sets
+
+
+def upsert_quiz_from_seed_questions(
+    join_code: str,
+    title: str,
+    time_limit: int,
+    questions_payload: list[dict[str, str]],
+) -> bool:
+    quiz = Quiz.query.filter_by(join_code=join_code).first()
+    created = False
+    if quiz is None:
+        quiz = Quiz(title=title, join_code=join_code, time_limit=time_limit)
+        db.session.add(quiz)
+        db.session.flush()
+        created = True
+
+    current_signature = sorted(question.content for question in quiz.questions)
+    new_signature = sorted(question_data["content"] for question_data in questions_payload)
+    if (
+        not created
+        and quiz.title == title
+        and quiz.time_limit == time_limit
+        and current_signature == new_signature
+        and len(quiz.questions) == len(questions_payload)
+    ):
+        return False
+
+    quiz.title = title
+    quiz.time_limit = time_limit
+
+    for result in quiz.results:
+        result.quiz_title = title
+        result.join_code = join_code
+
+    for question in list(quiz.questions):
+        db.session.delete(question)
+    db.session.flush()
+
+    db.session.add_all(
+        [
+            Question(
+                quiz_id=quiz.id,
+                content=question_data["content"],
+                option_a=question_data["option_a"],
+                option_b=question_data["option_b"],
+                option_c=question_data["option_c"],
+                option_d=question_data["option_d"],
+                correct_option=question_data["correct_option"],
+            )
+            for question_data in questions_payload
+        ]
+    )
+    return True
+
+
+def ensure_preset_quiz_library() -> bool:
+    question_bank = get_seed_question_bank_questions()
+    preset_sets = build_preset_question_sets(question_bank)
+    changed = False
+
+    for set_index, set_questions in enumerate(preset_sets, start=1):
+        changed = (
+            upsert_quiz_from_seed_questions(
+                join_code=PRESET_SET_JOIN_CODES[set_index - 1],
+                title=f"Bá»™ Ä‘á» {set_index:02d}",
+                time_limit=PRESET_QUIZ_TIME_LIMIT,
+                questions_payload=set_questions,
+            )
+            or changed
+        )
+
+    assigned_indices = random.Random(PRESET_RANDOM_SEED).sample(
+        range(len(preset_sets)),
+        len(GROUP_JOIN_CODES),
+    )
+    for group_code, set_index in zip(GROUP_JOIN_CODES, assigned_indices):
+        set_number = set_index + 1
+        changed = (
+            upsert_quiz_from_seed_questions(
+                join_code=group_code,
+                title=f"PhÃ²ng thi {group_code} - Bá»™ Ä‘á» {set_number:02d}",
+                time_limit=PRESET_QUIZ_TIME_LIMIT,
+                questions_payload=preset_sets[set_index],
+            )
+            or changed
+        )
+
+    if changed:
+        db.session.commit()
+
+    return changed
+
+
+def normalize_preset_quiz_titles() -> bool:
+    changed = False
+
+    for set_index, join_code in enumerate(PRESET_SET_JOIN_CODES, start=1):
+        quiz = Quiz.query.filter_by(join_code=join_code).first()
+        expected_title = f"Bo de {set_index:02d}"
+        if quiz and quiz.title != expected_title:
+            quiz.title = expected_title
+            for result in quiz.results:
+                result.quiz_title = expected_title
+            changed = True
+
+    assigned_indices = random.Random(PRESET_RANDOM_SEED).sample(
+        range(PRESET_QUIZ_SET_COUNT),
+        len(GROUP_JOIN_CODES),
+    )
+    for group_code, set_index in zip(GROUP_JOIN_CODES, assigned_indices):
+        quiz = Quiz.query.filter_by(join_code=group_code).first()
+        expected_title = f"Phong thi {group_code} - Bo de {set_index + 1:02d}"
+        if quiz and quiz.title != expected_title:
+            quiz.title = expected_title
+            for result in quiz.results:
+                result.quiz_title = expected_title
+            changed = True
+
+    if changed:
+        db.session.commit()
+
+    return changed
 
 
 def prepare_question_payload(
@@ -1094,7 +1512,8 @@ def create_app(test_config: dict | None = None) -> Flask:
             "teacher_dashboard_v2.html",
             quizzes_data=quizzes,
             question_bank_data=question_bank,
-            sample_join_code="NHOM02",
+            sample_join_code=GROUP_JOIN_CODES[0],
+            sample_join_codes=GROUP_JOIN_CODES,
             teacher_name=session.get("teacher_display_name", "Giảng viên"),
             teacher_username=session.get("teacher_username", "giangvien"),
             storage_label=get_storage_label(),
@@ -1393,7 +1812,16 @@ def create_app(test_config: dict | None = None) -> Flask:
         seeded_bank = seed_sample_question_bank()
         seeded_quiz = seed_sample_data()
         synced_demo_quiz = sync_sample_quiz_if_needed()
-        if created_teacher or seeded_bank or seeded_quiz or synced_demo_quiz:
+        preset_quiz_library_ready = ensure_preset_quiz_library()
+        normalized_preset_titles = normalize_preset_quiz_titles()
+        if (
+            created_teacher
+            or seeded_bank
+            or seeded_quiz
+            or synced_demo_quiz
+            or preset_quiz_library_ready
+            or normalized_preset_titles
+        ):
             save_snapshot()
         return jsonify(
             {
@@ -1402,7 +1830,9 @@ def create_app(test_config: dict | None = None) -> Flask:
                 "seeded_question_bank": seeded_bank,
                 "seeded_quiz": seeded_quiz,
                 "synced_demo_quiz": synced_demo_quiz,
-                "join_code": "NHOM02",
+                "preset_quiz_library_ready": preset_quiz_library_ready,
+                "normalized_preset_titles": normalized_preset_titles,
+                "join_codes": GROUP_JOIN_CODES,
                 "message": "Hệ thống đã sẵn sàng sử dụng.",
             }
         )
@@ -1436,8 +1866,22 @@ def create_app(test_config: dict | None = None) -> Flask:
         synced_demo_quiz = False
         if app.config.get("AUTO_SEED_SAMPLE_DATA", True):
             synced_demo_quiz = sync_sample_quiz_if_needed()
+        preset_quiz_library_ready = False
+        if app.config.get("AUTO_SEED_SAMPLE_DATA", True):
+            preset_quiz_library_ready = ensure_preset_quiz_library()
+        normalized_preset_titles = False
+        if app.config.get("AUTO_SEED_SAMPLE_DATA", True):
+            normalized_preset_titles = normalize_preset_quiz_titles()
 
-        if normalized_legacy or seeded_teacher or seeded_bank or seeded_quiz or synced_demo_quiz:
+        if (
+            normalized_legacy
+            or seeded_teacher
+            or seeded_bank
+            or seeded_quiz
+            or synced_demo_quiz
+            or preset_quiz_library_ready
+            or normalized_preset_titles
+        ):
             save_snapshot()
 
     return app

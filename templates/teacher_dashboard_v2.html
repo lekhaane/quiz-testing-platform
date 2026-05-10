@@ -113,18 +113,19 @@
                     <div class="stat-card"><span>Mã demo</span><strong>{{ sample_join_code }}</strong></div>
                     <div class="stat-card"><span>Số đề thi</span><strong>{{ quizzes_data|length }}</strong></div>
                     <div class="stat-card"><span>Ngân hàng câu hỏi</span><strong>{{ question_bank_data|length }}</strong></div>
-                    <div class="stat-card"><span>Lưu trữ</span><strong>{{ storage_label }}</strong></div>
+                    <div class="stat-card"><span>4 mã nhóm</span><strong>{{ sample_join_codes|join(", ") }}</strong></div>
                 </div>
             </div>
             <aside class="panel section-pad">
                 <h2>Luồng chính</h2>
                 <ul class="helper-list">
                     <li>Tạo câu hỏi trong ngân hàng theo chủ đề và độ khó.</li>
+                    <li>Tạo sẵn 20 bộ đề, mỗi bộ 20 câu; 4 mã nhóm sẽ được gán 4 bộ đề khác nhau.</li>
                     <li>Ghép nhanh câu hỏi từ ngân hàng vào đề thi chỉ bằng một nút bấm.</li>
                     <li>Thiết lập mã phòng, thời gian làm bài và theo dõi kết quả từng sinh viên.</li>
                     <li>Hệ thống chặn một mã sinh viên nộp lặp lại cùng một đề thi.</li>
                 </ul>
-                <div class="note">Tài khoản demo hiện tại: <strong>giangvien / 123456</strong></div>
+                <div class="note">Tài khoản demo: <strong>giangvien / 123456</strong> | Lưu trữ: <strong>{{ storage_label }}</strong></div>
             </aside>
         </section>
 
@@ -147,7 +148,7 @@
                     <div class="builder-actions">
                         <div>
                             <button class="ghost-btn" id="addQuestionButton" type="button">Thêm câu hỏi tự soạn</button>
-                            <button class="ghost-btn" id="addRandomQuestionSetButton" type="button">Lấy ngẫu nhiên 15 câu</button>
+                            <button class="ghost-btn" id="addRandomQuestionSetButton" type="button">Lấy ngẫu nhiên 20 câu</button>
                         </div>
                         <div>
                             <button class="ghost-btn" id="cancelEditButton" type="button" hidden>Hủy sửa</button>
@@ -389,12 +390,12 @@
 
         function fillRandomQuestionSet() {
             if (!questionBankData.length) {
-                setFeedback(formFeedback, "Ngân hàng câu hỏi đang trống, chưa thể tạo bộ 15 câu.", "error");
+                setFeedback(formFeedback, "Ngân hàng câu hỏi đang trống, chưa thể tạo bộ 20 câu.", "error");
                 return;
             }
 
             const shuffled = [...questionBankData].sort(() => Math.random() - 0.5);
-            const selectedQuestions = shuffled.slice(0, Math.min(15, shuffled.length));
+            const selectedQuestions = shuffled.slice(0, Math.min(20, shuffled.length));
             questionContainer.innerHTML = "";
             selectedQuestions.forEach((item) => createQuestionEditor(item));
             setFeedback(formFeedback, `Đã nạp ${selectedQuestions.length} câu hỏi từ ngân hàng vào đề thi.`, "success");

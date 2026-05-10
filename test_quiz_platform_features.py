@@ -43,7 +43,7 @@ class QuizPlatformFeatureTestCase(unittest.TestCase):
             follow_redirects=False,
         )
 
-    def test_default_seed_contains_fifteen_questions(self):
+    def test_default_seed_contains_seeded_question_bank_and_demo_quiz(self):
         seeded_app = create_app(
             {
                 "TESTING": True,
@@ -62,6 +62,47 @@ class QuizPlatformFeatureTestCase(unittest.TestCase):
             quiz = Quiz.query.filter_by(join_code="NHOM02").first()
             self.assertIsNotNone(quiz)
             self.assertGreaterEqual(len(quiz.questions), 15)
+
+        with seeded_app.app_context():
+            db.session.remove()
+            for engine in db.engines.values():
+                engine.dispose()
+
+    def test_default_seed_contains_twenty_quiz_sets_and_four_unique_group_codes(self):
+        seeded_app = create_app(
+            {
+                "TESTING": True,
+                "SQLALCHEMY_DATABASE_URI": "sqlite://",
+                "SQLALCHEMY_ENGINE_OPTIONS": {
+                    "connect_args": {"check_same_thread": False},
+                    "poolclass": StaticPool,
+                },
+                "QUIZ_STORAGE_MODE": "test-memory",
+                "QUIZ_SNAPSHOT_PATH": "",
+            }
+        )
+
+        with seeded_app.app_context():
+            preset_sets = [
+                Quiz.query.filter_by(join_code=f"DE{i:02d}").first()
+                for i in range(1, 21)
+            ]
+            self.assertTrue(all(preset_sets))
+            self.assertTrue(all(len(quiz.questions) == 20 for quiz in preset_sets if quiz))
+
+            group_quizzes = [
+                Quiz.query.filter_by(join_code=f"NHOM{i:02d}").first()
+                for i in range(1, 5)
+            ]
+            self.assertTrue(all(group_quizzes))
+            self.assertTrue(all(len(quiz.questions) == 20 for quiz in group_quizzes if quiz))
+
+            group_signatures = {
+                tuple(sorted(question.content for question in quiz.questions))
+                for quiz in group_quizzes
+                if quiz
+            }
+            self.assertEqual(len(group_signatures), 4)
 
         with seeded_app.app_context():
             db.session.remove()
