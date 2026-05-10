@@ -1,6 +1,3 @@
-from quiz_platform_core import *  # noqa: F401,F403
-"""
-
 from __future__ import annotations
 
 import json
@@ -22,12 +19,27 @@ from flask import (
     url_for,
 )
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import and_, or_, text
+from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.pool import StaticPool
 from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
+
+QUESTION_DIFFICULTIES = ["Cơ bản", "Trung bình", "Nâng cao"]
+LEGACY_TEXT_FIXES = {
+    "Kiem tra Tin hoc dai cuong": "Kiểm tra Tin học đại cương",
+    "Don vi nho nhat cua thong tin la gi?": "Đơn vị nhỏ nhất của thông tin là gì?",
+    "Phan cung may tinh goi la gi?": "Phần cứng máy tính gọi là gì?",
+    "To hop phim dung de sao chep noi dung la gi?": "Tổ hợp phím dùng để sao chép nội dung là gì?",
+    "Thi sinh tu do": "Thí sinh tự do",
+    "ThÃ­ sinh tá»± do": "Thí sinh tự do",
+    "Kiá»ƒm tra Tin há»c Ä‘áº¡i cÆ°Æ¡ng": "Kiểm tra Tin học đại cương",
+    "ÄÆ¡n vá»‹ nhá» nháº¥t cá»§a thÃ´ng tin lÃ  gÃ¬?": "Đơn vị nhỏ nhất của thông tin là gì?",
+    "Pháº§n cá»©ng mÃ¡y tÃ­nh gá»i lÃ  gÃ¬?": "Phần cứng máy tính gọi là gì?",
+    "Tá»• há»£p phÃ­m dÃ¹ng Ä‘á»ƒ sao chÃ©p ná»™i dung lÃ  gÃ¬?": "Tổ hợp phím dùng để sao chép nội dung là gì?",
+    "Giáº£ng viÃªn máº·c Ä‘á»‹nh": "Giảng viên mặc định",
+}
 
 
 class TeacherUser(db.Model):
@@ -118,15 +130,179 @@ class QuizResult(db.Model):
     date_submitted = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
-LEGACY_TEXT_FIXES = {
-    "Kiem tra Tin hoc dai cuong": "Kiểm tra Tin học đại cương",
-    "Don vi nho nhat cua thong tin la gi?": "Đơn vị nhỏ nhất của thông tin là gì?",
-    "Phan cung may tinh goi la gi?": "Phần cứng máy tính gọi là gì?",
-    "To hop phim dung de sao chep noi dung la gi?": "Tổ hợp phím dùng để sao chép nội dung là gì?",
-    "Thi sinh tu do": "Thí sinh tự do",
-}
-
-QUESTION_DIFFICULTY_OPTIONS = {"Cơ bản", "Trung bình", "Nâng cao"}
+def get_sample_questions() -> list[dict[str, str]]:
+    return [
+        {
+            "content": "Đơn vị nhỏ nhất của thông tin là gì?",
+            "option_a": "Byte",
+            "option_b": "Bit",
+            "option_c": "MB",
+            "option_d": "GB",
+            "correct_option": "B",
+            "category": "Tin học đại cương",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Phần cứng máy tính gọi là gì?",
+            "option_a": "Software",
+            "option_b": "Firmware",
+            "option_c": "Hardware",
+            "option_d": "Malware",
+            "correct_option": "C",
+            "category": "Tin học đại cương",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Tổ hợp phím dùng để sao chép nội dung là gì?",
+            "option_a": "Ctrl+V",
+            "option_b": "Ctrl+X",
+            "option_c": "Ctrl+A",
+            "option_d": "Ctrl+C",
+            "correct_option": "D",
+            "category": "Tin học đại cương",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Thiết bị nào dùng để nhập dữ liệu vào máy tính?",
+            "option_a": "Màn hình",
+            "option_b": "Bàn phím",
+            "option_c": "Loa",
+            "option_d": "Máy in",
+            "correct_option": "B",
+            "category": "Tin học đại cương",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Bộ nhớ RAM dùng để làm gì?",
+            "option_a": "Lưu trữ tạm thời dữ liệu khi máy đang chạy",
+            "option_b": "Lưu trữ vĩnh viễn hệ điều hành",
+            "option_c": "Kết nối Internet",
+            "option_d": "Điều khiển chuột",
+            "correct_option": "A",
+            "category": "Tin học đại cương",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Phần mở rộng phổ biến của tệp văn bản Word là gì?",
+            "option_a": ".xlsx",
+            "option_b": ".pptx",
+            "option_c": ".docx",
+            "option_d": ".jpg",
+            "correct_option": "C",
+            "category": "Tin học đại cương",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Địa chỉ IP dùng để làm gì trong mạng máy tính?",
+            "option_a": "Xác định thiết bị trên mạng",
+            "option_b": "Tăng tốc độ gõ bàn phím",
+            "option_c": "Lưu trữ dữ liệu lâu dài",
+            "option_d": "Nén hình ảnh",
+            "correct_option": "A",
+            "category": "Mạng máy tính",
+            "difficulty": "Trung bình",
+        },
+        {
+            "content": "Thiết bị nào thường dùng để kết nối nhiều máy tính trong cùng mạng LAN?",
+            "option_a": "Switch",
+            "option_b": "Scanner",
+            "option_c": "Projector",
+            "option_d": "UPS",
+            "correct_option": "A",
+            "category": "Mạng máy tính",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Giao thức HTTP chủ yếu dùng để làm gì?",
+            "option_a": "Truy cập và truyền tải nội dung web",
+            "option_b": "Điều khiển chuột không dây",
+            "option_c": "Sạc pin laptop",
+            "option_d": "Nén cơ sở dữ liệu",
+            "correct_option": "A",
+            "category": "Mạng máy tính",
+            "difficulty": "Trung bình",
+        },
+        {
+            "content": "Trong cơ sở dữ liệu quan hệ, bảng dùng để làm gì?",
+            "option_a": "Lưu trữ dữ liệu theo hàng và cột",
+            "option_b": "Chạy chương trình Java",
+            "option_c": "Vẽ sơ đồ mạng",
+            "option_d": "Tăng tốc trình duyệt",
+            "correct_option": "A",
+            "category": "Cơ sở dữ liệu",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Khóa chính (Primary Key) có vai trò gì?",
+            "option_a": "Phân biệt duy nhất mỗi bản ghi",
+            "option_b": "Ẩn toàn bộ bảng dữ liệu",
+            "option_c": "Tăng âm lượng máy tính",
+            "option_d": "Tự động xóa dữ liệu trùng",
+            "correct_option": "A",
+            "category": "Cơ sở dữ liệu",
+            "difficulty": "Trung bình",
+        },
+        {
+            "content": "Câu lệnh SQL nào dùng để lấy dữ liệu từ bảng?",
+            "option_a": "INSERT",
+            "option_b": "UPDATE",
+            "option_c": "SELECT",
+            "option_d": "DELETE",
+            "correct_option": "C",
+            "category": "Cơ sở dữ liệu",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Trong lập trình, biến dùng để làm gì?",
+            "option_a": "Lưu trữ giá trị để sử dụng trong chương trình",
+            "option_b": "Xóa hệ điều hành",
+            "option_c": "Tăng kích thước màn hình",
+            "option_d": "Kết nối Wi-Fi",
+            "correct_option": "A",
+            "category": "Lập trình cơ bản",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Cấu trúc lặp dùng để làm gì?",
+            "option_a": "Lặp lại một khối lệnh nhiều lần",
+            "option_b": "Tắt chương trình ngay lập tức",
+            "option_c": "Chỉ khai báo biến số thực",
+            "option_d": "Lưu ảnh lên máy in",
+            "correct_option": "A",
+            "category": "Lập trình cơ bản",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Điều kiện if-else trong lập trình dùng để làm gì?",
+            "option_a": "Rẽ nhánh xử lý theo điều kiện",
+            "option_b": "Tạo kết nối mạng LAN",
+            "option_c": "Lưu dữ liệu vào RAM vĩnh viễn",
+            "option_d": "Mở file PDF",
+            "correct_option": "A",
+            "category": "Lập trình cơ bản",
+            "difficulty": "Cơ bản",
+        },
+        {
+            "content": "Mảng (array) thường được dùng để làm gì?",
+            "option_a": "Lưu nhiều giá trị cùng kiểu dữ liệu",
+            "option_b": "Tạo tài khoản email",
+            "option_c": "Phát nhạc nền",
+            "option_d": "Mã hóa địa chỉ IP",
+            "correct_option": "A",
+            "category": "Lập trình cơ bản",
+            "difficulty": "Trung bình",
+        },
+        {
+            "content": "Thuật toán là gì?",
+            "option_a": "Tập hữu hạn các bước giải quyết một bài toán",
+            "option_b": "Một loại phần cứng của máy tính",
+            "option_c": "Tên của trình duyệt web",
+            "option_d": "Thiết bị kết nối Internet",
+            "correct_option": "A",
+            "category": "Thuật toán",
+            "difficulty": "Trung bình",
+        },
+    ]
 
 
 def normalize_join_code(raw_value: str | None) -> str:
@@ -273,8 +449,6 @@ def serialize_quiz_admin(quiz: Quiz) -> dict[str, object]:
                 "option_c": question.option_c,
                 "option_d": question.option_d,
                 "correct_option": question.correct_option,
-                "category": "Từ đề thi",
-                "difficulty": "Tùy chọn",
             }
             for question in quiz.questions
         ],
@@ -328,6 +502,21 @@ def save_snapshot() -> None:
             }
         )
 
+    for item in QuestionBankItem.query.order_by(QuestionBankItem.id.asc()).all():
+        payload["question_bank"].append(
+            {
+                "content": item.content,
+                "option_a": item.option_a,
+                "option_b": item.option_b,
+                "option_c": item.option_c,
+                "option_d": item.option_d,
+                "correct_option": item.correct_option,
+                "category": item.category,
+                "difficulty": item.difficulty,
+                "created_at": snapshot_datetime(item.created_at),
+            }
+        )
+
     for quiz in Quiz.query.order_by(Quiz.id.asc()).all():
         payload["quizzes"].append(
             {
@@ -348,21 +537,6 @@ def save_snapshot() -> None:
             }
         )
 
-    for item in QuestionBankItem.query.order_by(QuestionBankItem.id.asc()).all():
-        payload["question_bank"].append(
-            {
-                "content": item.content,
-                "option_a": item.option_a,
-                "option_b": item.option_b,
-                "option_c": item.option_c,
-                "option_d": item.option_d,
-                "correct_option": item.correct_option,
-                "category": item.category,
-                "difficulty": item.difficulty,
-                "created_at": snapshot_datetime(item.created_at),
-            }
-        )
-
     for result in QuizResult.query.order_by(QuizResult.id.asc()).all():
         payload["results"].append(
             {
@@ -379,10 +553,7 @@ def save_snapshot() -> None:
         )
 
     snapshot_path.parent.mkdir(parents=True, exist_ok=True)
-    snapshot_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    snapshot_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def load_snapshot() -> bool:
@@ -484,7 +655,7 @@ def ensure_database_shape() -> None:
     if db.engine.dialect.name != "sqlite":
         return
 
-    quiz_result_columns = {
+    result_columns = {
         row[1] for row in db.session.execute(text("PRAGMA table_info(quiz_result)")).fetchall()
     }
     required_result_columns = {
@@ -498,7 +669,7 @@ def ensure_database_shape() -> None:
 
     updated = False
     for column_name, definition in required_result_columns.items():
-        if column_name not in quiz_result_columns:
+        if column_name not in result_columns:
             db.session.execute(text(f"ALTER TABLE quiz_result ADD COLUMN {column_name} {definition}"))
             updated = True
 
@@ -506,36 +677,48 @@ def ensure_database_shape() -> None:
         db.session.commit()
 
 
+def fix_legacy_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+    return LEGACY_TEXT_FIXES.get(value, value)
+
+
 def normalize_legacy_texts() -> bool:
     changed = False
 
+    for teacher in TeacherUser.query.all():
+        fixed_display_name = fix_legacy_text(teacher.display_name)
+        if fixed_display_name != teacher.display_name:
+            teacher.display_name = fixed_display_name or teacher.display_name
+            changed = True
+
     for item in QuestionBankItem.query.all():
-        fixed_content = LEGACY_TEXT_FIXES.get(item.content)
-        if fixed_content and fixed_content != item.content:
-            item.content = fixed_content
+        fixed_content = fix_legacy_text(item.content)
+        if fixed_content != item.content:
+            item.content = fixed_content or item.content
             changed = True
 
     for quiz in Quiz.query.all():
-        fixed_title = LEGACY_TEXT_FIXES.get(quiz.title)
-        if fixed_title and fixed_title != quiz.title:
-            quiz.title = fixed_title
+        fixed_title = fix_legacy_text(quiz.title)
+        if fixed_title != quiz.title:
+            quiz.title = fixed_title or quiz.title
             changed = True
 
         for question in quiz.questions:
-            fixed_content = LEGACY_TEXT_FIXES.get(question.content)
-            if fixed_content and fixed_content != question.content:
-                question.content = fixed_content
+            fixed_content = fix_legacy_text(question.content)
+            if fixed_content != question.content:
+                question.content = fixed_content or question.content
                 changed = True
 
     for result in QuizResult.query.all():
-        fixed_student_name = LEGACY_TEXT_FIXES.get(result.student_name or "")
-        if fixed_student_name and fixed_student_name != result.student_name:
-            result.student_name = fixed_student_name
+        fixed_student_name = fix_legacy_text(result.student_name)
+        if fixed_student_name != result.student_name:
+            result.student_name = fixed_student_name or result.student_name
             changed = True
 
-        fixed_quiz_title = LEGACY_TEXT_FIXES.get(result.quiz_title or "")
-        if fixed_quiz_title and fixed_quiz_title != result.quiz_title:
-            result.quiz_title = fixed_quiz_title
+        fixed_quiz_title = fix_legacy_text(result.quiz_title)
+        if fixed_quiz_title != result.quiz_title:
+            result.quiz_title = fixed_quiz_title or result.quiz_title
             changed = True
 
     if changed:
@@ -554,89 +737,9 @@ def seed_default_teacher() -> bool:
     return True
 
 
-def seed_sample_data() -> bool:
-    if Quiz.query.filter_by(join_code="NHOM02").first():
-        return False
-
-    quiz = Quiz(
-        title="Kiểm tra Tin học đại cương",
-        join_code="NHOM02",
-        time_limit=10,
-    )
-    db.session.add(quiz)
-    db.session.flush()
-
-    db.session.add_all(
-        [
-            Question(
-                quiz_id=quiz.id,
-                content="Đơn vị nhỏ nhất của thông tin là gì?",
-                option_a="Byte",
-                option_b="Bit",
-                option_c="MB",
-                option_d="GB",
-                correct_option="B",
-            ),
-            Question(
-                quiz_id=quiz.id,
-                content="Phần cứng máy tính gọi là gì?",
-                option_a="Software",
-                option_b="Firmware",
-                option_c="Hardware",
-                option_d="Malware",
-                correct_option="C",
-            ),
-            Question(
-                quiz_id=quiz.id,
-                content="Tổ hợp phím dùng để sao chép nội dung là gì?",
-                option_a="Ctrl+V",
-                option_b="Ctrl+X",
-                option_c="Ctrl+A",
-                option_d="Ctrl+C",
-                correct_option="D",
-            ),
-        ]
-    )
-    db.session.commit()
-    return True
-
-
 def seed_sample_question_bank() -> bool:
-    sample_questions = [
-        {
-            "content": "Đơn vị nhỏ nhất của thông tin là gì?",
-            "option_a": "Byte",
-            "option_b": "Bit",
-            "option_c": "MB",
-            "option_d": "GB",
-            "correct_option": "B",
-            "category": "Tin học đại cương",
-            "difficulty": "Cơ bản",
-        },
-        {
-            "content": "Phần cứng máy tính gọi là gì?",
-            "option_a": "Software",
-            "option_b": "Firmware",
-            "option_c": "Hardware",
-            "option_d": "Malware",
-            "correct_option": "C",
-            "category": "Tin học đại cương",
-            "difficulty": "Cơ bản",
-        },
-        {
-            "content": "Tổ hợp phím dùng để sao chép nội dung là gì?",
-            "option_a": "Ctrl+V",
-            "option_b": "Ctrl+X",
-            "option_c": "Ctrl+A",
-            "option_d": "Ctrl+C",
-            "correct_option": "D",
-            "category": "Tin học đại cương",
-            "difficulty": "Cơ bản",
-        },
-    ]
-
     changed = False
-    for question_data in sample_questions:
+    for question_data in get_sample_questions():
         if QuestionBankItem.query.filter_by(content=question_data["content"]).first():
             continue
 
@@ -656,8 +759,118 @@ def seed_sample_question_bank() -> bool:
 
     if changed:
         db.session.commit()
-
     return changed
+
+
+def seed_sample_data() -> bool:
+    if Quiz.query.filter_by(join_code="NHOM02").first():
+        return False
+
+    quiz = Quiz(
+        title="Kiểm tra Tin học đại cương",
+        join_code="NHOM02",
+        time_limit=20,
+    )
+    db.session.add(quiz)
+    db.session.flush()
+
+    db.session.add_all(
+        [
+            Question(
+                quiz_id=quiz.id,
+                content=question_data["content"],
+                option_a=question_data["option_a"],
+                option_b=question_data["option_b"],
+                option_c=question_data["option_c"],
+                option_d=question_data["option_d"],
+                correct_option=question_data["correct_option"],
+            )
+            for question_data in get_sample_questions()
+        ]
+    )
+    db.session.commit()
+    return True
+
+
+def sync_sample_quiz_if_needed() -> bool:
+    quiz = Quiz.query.filter_by(join_code="NHOM02").first()
+    if not quiz:
+        return False
+
+    sample_questions = get_sample_questions()
+    if len(quiz.questions) >= len(sample_questions):
+        return False
+
+    quiz.title = "Kiểm tra Tin học đại cương"
+    quiz.time_limit = max(quiz.time_limit, 20)
+
+    for question in list(quiz.questions):
+        db.session.delete(question)
+    db.session.flush()
+
+    db.session.add_all(
+        [
+            Question(
+                quiz_id=quiz.id,
+                content=question_data["content"],
+                option_a=question_data["option_a"],
+                option_b=question_data["option_b"],
+                option_c=question_data["option_c"],
+                option_d=question_data["option_d"],
+                correct_option=question_data["correct_option"],
+            )
+            for question_data in sample_questions
+        ]
+    )
+    db.session.commit()
+    return True
+
+
+def prepare_question_payload(
+    raw_question: dict[str, object],
+    question_label: str,
+) -> tuple[dict[str, str] | None, str | None]:
+    content = str(raw_question.get("content") or "").strip()
+    option_a = str(raw_question.get("option_a") or "").strip()
+    option_b = str(raw_question.get("option_b") or "").strip()
+    option_c = str(raw_question.get("option_c") or "").strip()
+    option_d = str(raw_question.get("option_d") or "").strip()
+    correct_option = str(raw_question.get("correct_option") or "").strip().upper()
+
+    if not all([content, option_a, option_b, option_c, option_d]):
+        return None, f"{question_label} chưa đủ nội dung và 4 đáp án."
+
+    if correct_option not in {"A", "B", "C", "D"}:
+        return None, f"{question_label} chưa chọn đáp án đúng hợp lệ."
+
+    return (
+        {
+            "content": content,
+            "option_a": option_a,
+            "option_b": option_b,
+            "option_c": option_c,
+            "option_d": option_d,
+            "correct_option": correct_option,
+        },
+        None,
+    )
+
+
+def validate_question_bank_payload(
+    payload: dict[str, object],
+) -> tuple[dict[str, str] | None, str | None]:
+    prepared_question, error_message = prepare_question_payload(payload, "Câu hỏi trong ngân hàng")
+    if error_message:
+        return None, error_message
+
+    category = " ".join(str(payload.get("category") or "").strip().split())[:80] or "Chung"
+    difficulty = " ".join(str(payload.get("difficulty") or "").strip().split())[:30] or "Cơ bản"
+    if difficulty not in QUESTION_DIFFICULTIES:
+        return None, "Độ khó phải là Cơ bản, Trung bình hoặc Nâng cao."
+
+    prepared_question["category"] = category
+    prepared_question["difficulty"] = difficulty
+    return prepared_question, None
 
 
 def validate_questions_payload(
@@ -666,31 +879,15 @@ def validate_questions_payload(
     if not questions_payload:
         return None, "Cần ít nhất 1 câu hỏi để tạo đề thi."
 
-    prepared_questions = []
+    prepared_questions: list[dict[str, str]] = []
     for index, raw_question in enumerate(questions_payload, start=1):
-        content = str(raw_question.get("content") or "").strip()
-        option_a = str(raw_question.get("option_a") or "").strip()
-        option_b = str(raw_question.get("option_b") or "").strip()
-        option_c = str(raw_question.get("option_c") or "").strip()
-        option_d = str(raw_question.get("option_d") or "").strip()
-        correct_option = str(raw_question.get("correct_option") or "").strip().upper()
-
-        if not all([content, option_a, option_b, option_c, option_d]):
-            return None, f"Câu hỏi {index} chưa đủ nội dung và 4 đáp án."
-
-        if correct_option not in {"A", "B", "C", "D"}:
-            return None, f"Câu hỏi {index} chưa chọn đáp án đúng hợp lệ."
-
-        prepared_questions.append(
-            {
-                "content": content,
-                "option_a": option_a,
-                "option_b": option_b,
-                "option_c": option_c,
-                "option_d": option_d,
-                "correct_option": correct_option,
-            }
+        prepared_question, error_message = prepare_question_payload(
+            raw_question,
+            f"Câu hỏi {index}",
         )
+        if error_message:
+            return None, error_message
+        prepared_questions.append(prepared_question)
 
     return prepared_questions, None
 
@@ -780,6 +977,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         SQLALCHEMY_ENGINE_OPTIONS={},
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         AUTO_SEED_SAMPLE_DATA=True,
+        AUTO_SEED_QUESTION_BANK=True,
         QUIZ_STORAGE_MODE="database",
         QUIZ_SNAPSHOT_PATH=str(default_snapshot_path.resolve()),
     )
@@ -847,6 +1045,7 @@ def create_app(test_config: dict | None = None) -> Flask:
                 "status": "ok",
                 "storage_mode": current_app.config.get("QUIZ_STORAGE_MODE"),
                 "quiz_count": Quiz.query.count(),
+                "question_bank_count": QuestionBankItem.query.count(),
                 "teacher_logged_in": is_teacher_logged_in(),
                 "student_logged_in": is_student_logged_in(),
             }
@@ -887,13 +1086,19 @@ def create_app(test_config: dict | None = None) -> Flask:
     @teacher_required()
     def teacher_dashboard():
         quizzes = [serialize_quiz_admin(quiz) for quiz in Quiz.query.order_by(Quiz.id.desc()).all()]
+        question_bank = [
+            serialize_question_bank_item(item)
+            for item in QuestionBankItem.query.order_by(QuestionBankItem.id.desc()).all()
+        ]
         return render_template(
-            "teacher_dashboard.html",
+            "teacher_dashboard_v2.html",
             quizzes_data=quizzes,
+            question_bank_data=question_bank,
             sample_join_code="NHOM02",
             teacher_name=session.get("teacher_display_name", "Giảng viên"),
             teacher_username=session.get("teacher_username", "giangvien"),
             storage_label=get_storage_label(),
+            difficulty_options=QUESTION_DIFFICULTIES,
         )
 
     @app.route("/quiz-room/<join_code>")
@@ -915,6 +1120,13 @@ def create_app(test_config: dict | None = None) -> Flask:
         if not quiz:
             return jsonify({"status": "error", "message": "Mã phòng thi không tồn tại."}), 404
 
+        already_submitted = False
+        student_code = normalize_student_code(session.get("student_code"))
+        if student_code:
+            already_submitted = bool(
+                QuizResult.query.filter_by(quiz_id=quiz.id, student_code=student_code).first()
+            )
+
         return jsonify(
             {
                 "status": "success",
@@ -922,6 +1134,7 @@ def create_app(test_config: dict | None = None) -> Flask:
                     "quiz_id": quiz.id,
                     "title": quiz.title,
                     "time_limit": quiz.time_limit,
+                    "already_submitted": already_submitted,
                 },
             }
         )
@@ -949,16 +1162,26 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.route("/api/submit-quiz", methods=["POST"])
     def submit_quiz():
+        if not is_student_logged_in():
+            return (
+                jsonify(
+                    {
+                        "status": "error",
+                        "message": "Bạn cần đăng nhập sinh viên trước khi nộp bài.",
+                    }
+                ),
+                401,
+            )
+
         payload = request.get_json(silent=True) or {}
         join_code = normalize_join_code(payload.get("join_code"))
-        student_name = normalize_person_name(
-            session.get("student_name") or payload.get("student_name")
-        )
-        student_code = normalize_student_code(
-            session.get("student_code") or payload.get("student_code")
-        )
+        student_name = normalize_person_name(session.get("student_name") or payload.get("student_name"))
+        student_code = normalize_student_code(session.get("student_code") or payload.get("student_code"))
         cheat_count = parse_non_negative_int(payload.get("cheat_count"), default=0)
         user_answers = payload.get("answers") or {}
+
+        if not student_code:
+            return jsonify({"status": "error", "message": "Thiếu mã sinh viên."}), 400
 
         quiz = Quiz.query.filter_by(join_code=join_code).first()
         if not quiz:
@@ -966,6 +1189,21 @@ def create_app(test_config: dict | None = None) -> Flask:
 
         if not quiz.questions:
             return jsonify({"status": "error", "message": "Đề thi hiện chưa có câu hỏi."}), 400
+
+        duplicate_result = QuizResult.query.filter_by(
+            quiz_id=quiz.id,
+            student_code=student_code,
+        ).first()
+        if duplicate_result:
+            return (
+                jsonify(
+                    {
+                        "status": "error",
+                        "message": "Mã sinh viên này đã nộp bài cho đề thi này rồi.",
+                    }
+                ),
+                409,
+            )
 
         correct_count = 0
         details = []
@@ -995,7 +1233,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         result = QuizResult(
             quiz_id=quiz.id,
             student_name=student_name or "Thí sinh tự do",
-            student_code=student_code or None,
+            student_code=student_code,
             quiz_title=quiz.title,
             join_code=quiz.join_code,
             score=score,
@@ -1020,6 +1258,74 @@ def create_app(test_config: dict | None = None) -> Flask:
                 "details": details,
             }
         )
+
+    @app.route("/api/teacher/question-bank", methods=["GET"])
+    @teacher_required(api=True)
+    def get_question_bank():
+        items = [
+            serialize_question_bank_item(item)
+            for item in QuestionBankItem.query.order_by(QuestionBankItem.id.desc()).all()
+        ]
+        return jsonify({"status": "success", "data": items})
+
+    @app.route("/api/teacher/question-bank", methods=["POST"])
+    @teacher_required(api=True)
+    def create_question_bank_item():
+        payload = request.get_json(silent=True) or {}
+        prepared_question, error_message = validate_question_bank_payload(payload)
+        if error_message:
+            return jsonify({"status": "error", "message": error_message}), 400
+
+        item = QuestionBankItem(**prepared_question)
+        db.session.add(item)
+        db.session.commit()
+        save_snapshot()
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": "Đã thêm câu hỏi vào ngân hàng.",
+                    "data": serialize_question_bank_item(item),
+                }
+            ),
+            201,
+        )
+
+    @app.route("/api/teacher/question-bank/<int:item_id>", methods=["PUT"])
+    @teacher_required(api=True)
+    def update_question_bank_item(item_id: int):
+        item = db.get_or_404(QuestionBankItem, item_id)
+        payload = request.get_json(silent=True) or {}
+        prepared_question, error_message = validate_question_bank_payload(payload)
+        if error_message:
+            return jsonify({"status": "error", "message": error_message}), 400
+
+        item.content = prepared_question["content"]
+        item.option_a = prepared_question["option_a"]
+        item.option_b = prepared_question["option_b"]
+        item.option_c = prepared_question["option_c"]
+        item.option_d = prepared_question["option_d"]
+        item.correct_option = prepared_question["correct_option"]
+        item.category = prepared_question["category"]
+        item.difficulty = prepared_question["difficulty"]
+        db.session.commit()
+        save_snapshot()
+        return jsonify(
+            {
+                "status": "success",
+                "message": "Đã cập nhật câu hỏi trong ngân hàng.",
+                "data": serialize_question_bank_item(item),
+            }
+        )
+
+    @app.route("/api/teacher/question-bank/<int:item_id>", methods=["DELETE"])
+    @teacher_required(api=True)
+    def delete_question_bank_item(item_id: int):
+        item = db.get_or_404(QuestionBankItem, item_id)
+        db.session.delete(item)
+        db.session.commit()
+        save_snapshot()
+        return jsonify({"status": "success", "message": "Đã xóa câu hỏi khỏi ngân hàng."})
 
     @app.route("/api/teacher/quizzes", methods=["POST"])
     @teacher_required(api=True)
@@ -1084,14 +1390,18 @@ def create_app(test_config: dict | None = None) -> Flask:
     @teacher_required(api=True)
     def init_all():
         created_teacher = seed_default_teacher()
-        created_quiz = seed_sample_data()
-        if created_teacher or created_quiz:
+        seeded_bank = seed_sample_question_bank()
+        seeded_quiz = seed_sample_data()
+        synced_demo_quiz = sync_sample_quiz_if_needed()
+        if created_teacher or seeded_bank or seeded_quiz or synced_demo_quiz:
             save_snapshot()
         return jsonify(
             {
                 "status": "success",
                 "seeded_teacher": created_teacher,
-                "seeded_quiz": created_quiz,
+                "seeded_question_bank": seeded_bank,
+                "seeded_quiz": seeded_quiz,
+                "synced_demo_quiz": synced_demo_quiz,
                 "join_code": "NHOM02",
                 "message": "Hệ thống đã sẵn sàng sử dụng.",
             }
@@ -1117,11 +1427,17 @@ def create_app(test_config: dict | None = None) -> Flask:
         load_snapshot()
         normalized_legacy = normalize_legacy_texts()
         seeded_teacher = seed_default_teacher()
+        seeded_bank = False
+        if app.config.get("AUTO_SEED_QUESTION_BANK", True):
+            seeded_bank = seed_sample_question_bank()
         seeded_quiz = False
         if app.config.get("AUTO_SEED_SAMPLE_DATA", True) and not Quiz.query.first():
             seeded_quiz = seed_sample_data()
+        synced_demo_quiz = False
+        if app.config.get("AUTO_SEED_SAMPLE_DATA", True):
+            synced_demo_quiz = sync_sample_quiz_if_needed()
 
-        if normalized_legacy or seeded_teacher or seeded_quiz:
+        if normalized_legacy or seeded_teacher or seeded_bank or seeded_quiz or synced_demo_quiz:
             save_snapshot()
 
     return app
@@ -1129,4 +1445,3 @@ def create_app(test_config: dict | None = None) -> Flask:
 
 if __name__ == "__main__":
     create_app().run(debug=True)
-"""

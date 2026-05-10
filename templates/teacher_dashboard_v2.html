@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang giảng viên</title>
+    <style>
+        :root {
+            --ink:#193553;
+            --muted:#64778f;
+            --accent:#0f7a77;
+            --accent-strong:#095d5a;
+            --accent-soft:rgba(15,122,119,.1);
+            --danger:#a7473d;
+            --danger-soft:rgba(167,71,61,.1);
+            --line:rgba(25,53,83,.12);
+            --surface:rgba(255,255,255,.92);
+            --surface-soft:#fffdfa;
+            --font-ui:"Noto Sans","Segoe UI","Tahoma","Arial",sans-serif;
+            --font-display:"Noto Sans","Segoe UI Semibold","Segoe UI","Tahoma","Arial",sans-serif;
+        }
+        * { box-sizing:border-box; }
+        body {
+            margin:0;
+            min-height:100vh;
+            font-family:var(--font-ui);
+            color:var(--ink);
+            text-rendering:optimizeLegibility;
+            -webkit-font-smoothing:antialiased;
+            background:
+                radial-gradient(circle at top left, rgba(15,122,119,.14), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(202,103,70,.14), transparent 32%),
+                linear-gradient(150deg,#f2ece2,#dce6ef);
+        }
+        .page { max-width:1280px; margin:0 auto; padding:28px 18px 56px; }
+        .topbar, .question-head, .quiz-actions, .builder-actions, .bank-actions, .summary-row {
+            display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+        }
+        .topbar { margin-bottom:24px; }
+        .topbar a { color:var(--ink); text-decoration:none; font-weight:700; }
+        .panel {
+            background:var(--surface);
+            border-radius:28px;
+            border:1px solid rgba(255,255,255,.82);
+            box-shadow:0 18px 50px rgba(25,53,83,.12);
+            backdrop-filter:blur(10px);
+        }
+        .hero, .section-pad { padding:26px; }
+        .hero-grid, .workspace, .bank-grid, .content-grid, .stats, .row-2 { display:grid; gap:18px; }
+        .hero-grid { grid-template-columns:1.1fr .9fr; margin-bottom:22px; }
+        .workspace { grid-template-columns:minmax(0,1.06fr) minmax(320px,.94fr); }
+        .bank-grid, .content-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .stats, .row-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .eyebrow { margin:0 0 10px; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
+        h1, h2, h3 { margin-top:0; font-family:var(--font-display); }
+        p, .helper-list, .empty, .meta-text, .choice-line, .bank-scroll { color:var(--muted); line-height:1.65; }
+        .stat-card, .question-editor, .bank-card, .picker-card, .question-item, .box {
+            border-radius:20px; border:1px solid var(--line); background:var(--surface-soft);
+        }
+        .stat-card { padding:16px; }
+        .stat-card strong { display:block; margin-top:6px; font-size:1.4rem; }
+        input, textarea, select, button { font:inherit; }
+        input, textarea, select {
+            width:100%; min-height:48px; padding:12px 14px; margin-bottom:14px;
+            border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.96); color:var(--ink);
+        }
+        textarea { min-height:96px; resize:vertical; }
+        label { display:block; margin-bottom:8px; font-size:.95rem; font-weight:700; }
+        .ghost-btn, .primary-btn, .danger-btn {
+            min-height:46px; padding:0 16px; border:none; border-radius:16px; font-weight:800; cursor:pointer;
+        }
+        .ghost-btn { background:rgba(25,53,83,.08); color:var(--ink); }
+        .danger-btn { background:var(--danger-soft); color:var(--danger); }
+        .primary-btn { background:linear-gradient(135deg,var(--accent),#2ea58d); color:#f8fffd; }
+        .feedback { min-height:24px; margin-top:12px; font-weight:700; }
+        .feedback.error { color:var(--danger); }
+        .feedback.success { color:var(--accent-strong); }
+        .question-editor, .bank-card, .picker-card, .question-item, .box { padding:18px; }
+        .question-index { font-weight:800; color:var(--accent-strong); }
+        .pill {
+            display:inline-flex; align-items:center; min-height:30px; padding:0 12px;
+            border-radius:999px; background:var(--accent-soft); color:var(--accent-strong); font-size:.9rem; font-weight:700;
+        }
+        .pill.is-neutral { background:rgba(25,53,83,.08); color:var(--ink); }
+        .helper-list { padding-left:18px; margin:0; }
+        .note { margin-top:14px; padding:14px; border-radius:18px; background:var(--accent-soft); color:var(--accent-strong); font-weight:700; }
+        .bank-scroll, .picker-grid { max-height:640px; overflow:auto; padding-right:4px; }
+        .picker-grid { display:grid; gap:14px; }
+        .quiz-card { border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.9); margin-top:16px; overflow:hidden; }
+        .quiz-card summary { list-style:none; cursor:pointer; padding:18px 20px; }
+        .quiz-card summary::-webkit-details-marker { display:none; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); font-size:.95rem; }
+        th { color:var(--muted); }
+        @media (max-width:1020px) {
+            .hero-grid, .workspace, .bank-grid, .content-grid, .stats, .row-2 { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="topbar">
+            <a href="/">← Trang sinh viên</a>
+            <div><strong>{{ teacher_name }}</strong> <span style="color:#64778f;">({{ teacher_username }})</span> | <a href="/teacher/logout">Đăng xuất</a></div>
+        </div>
+
+        <section class="hero-grid">
+            <div class="panel hero">
+                <p class="eyebrow">Không gian giảng viên</p>
+                <h1>Quản lý ngân hàng câu hỏi, ghép đề thi và theo dõi điểm số trên cùng một dashboard.</h1>
+                <p>Hệ thống hiện đã hỗ trợ đầy đủ 3 luồng trọng tâm của đề bài: quản lý ngân hàng câu hỏi độc lập, ghép câu hỏi thành đề thi và tổ chức thi trực tuyến với chấm điểm tự động.</p>
+                <div class="stats">
+                    <div class="stat-card"><span>Mã demo</span><strong>{{ sample_join_code }}</strong></div>
+                    <div class="stat-card"><span>Số đề thi</span><strong>{{ quizzes_data|length }}</strong></div>
+                    <div class="stat-card"><span>Ngân hàng câu hỏi</span><strong>{{ question_bank_data|length }}</strong></div>
+                    <div class="stat-card"><span>Lưu trữ</span><strong>{{ storage_label }}</strong></div>
+                </div>
+            </div>
+            <aside class="panel section-pad">
+                <h2>Luồng chính</h2>
+                <ul class="helper-list">
+                    <li>Tạo câu hỏi trong ngân hàng theo chủ đề và độ khó.</li>
+                    <li>Ghép nhanh câu hỏi từ ngân hàng vào đề thi chỉ bằng một nút bấm.</li>
+                    <li>Thiết lập mã phòng, thời gian làm bài và theo dõi kết quả từng sinh viên.</li>
+                    <li>Hệ thống chặn một mã sinh viên nộp lặp lại cùng một đề thi.</li>
+                </ul>
+                <div class="note">Tài khoản demo hiện tại: <strong>giangvien / 123456</strong></div>
+            </aside>
+        </section>
+
+        <section class="workspace">
+            <div class="panel section-pad">
+                <h2 id="builderTitle">Tạo đề thi mới</h2>
+                <form id="quizBuilder">
+                    <input id="editingQuizId" type="hidden">
+                    <label for="title">Tên đề thi</label>
+                    <input id="title" type="text" placeholder="Ví dụ: Kiểm tra Java cơ bản">
+                    <div class="row-2">
+                        <div><label for="joinCode">Mã phòng thi</label><input id="joinCode" type="text" placeholder="Để trống để hệ thống tự tạo" maxlength="10"></div>
+                        <div><label for="timeLimit">Thời gian (phút)</label><input id="timeLimit" type="number" min="1" max="180" value="15"></div>
+                    </div>
+                    <h3>Ghép nhanh từ ngân hàng câu hỏi</h3>
+                    <div class="picker-grid" id="bankPicker"></div>
+                    <div class="note">Bạn có thể thêm câu hỏi từ ngân hàng hoặc tự soạn câu hỏi mới ngay bên dưới.</div>
+                    <h3 style="margin-top:22px;">Danh sách câu hỏi trong đề</h3>
+                    <div id="questionContainer"></div>
+                    <div class="builder-actions">
+                        <div>
+                            <button class="ghost-btn" id="addQuestionButton" type="button">Thêm câu hỏi tự soạn</button>
+                            <button class="ghost-btn" id="addRandomQuestionSetButton" type="button">Lấy ngẫu nhiên 15 câu</button>
+                        </div>
+                        <div>
+                            <button class="ghost-btn" id="cancelEditButton" type="button" hidden>Hủy sửa</button>
+                            <button class="primary-btn" id="submitButton" type="submit">Tạo đề thi</button>
+                        </div>
+                    </div>
+                    <div class="feedback" id="formFeedback"></div>
+                </form>
+            </div>
+
+            <aside class="panel section-pad">
+                <h2>Từ khóa nghiệp vụ</h2>
+                <ul class="helper-list">
+                    <li>Question Bank</li>
+                    <li>Join Code</li>
+                    <li>Timer</li>
+                    <li>Auto-grading</li>
+                    <li>Anti-cheat</li>
+                </ul>
+            </aside>
+        </section>
+
+        <section class="panel section-pad" style="margin-top:22px;">
+            <div class="bank-grid">
+                <div>
+                    <h2 id="bankFormTitle">Ngân hàng câu hỏi</h2>
+                    <form id="bankForm">
+                        <input id="editingBankId" type="hidden">
+                        <label for="bankContent">Nội dung câu hỏi</label>
+                        <textarea id="bankContent" placeholder="Nhập nội dung câu hỏi"></textarea>
+                        <div class="row-2">
+                            <div><label for="bankCategory">Chủ đề</label><input id="bankCategory" type="text" placeholder="Ví dụ: Cơ sở dữ liệu"></div>
+                            <div>
+                                <label for="bankDifficulty">Độ khó</label>
+                                <select id="bankDifficulty">
+                                    {% for item in difficulty_options %}
+                                        <option value="{{ item }}">{{ item }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row-2">
+                            <div><label for="bankOptionA">Đáp án A</label><input id="bankOptionA" type="text"></div>
+                            <div><label for="bankOptionB">Đáp án B</label><input id="bankOptionB" type="text"></div>
+                        </div>
+                        <div class="row-2">
+                            <div><label for="bankOptionC">Đáp án C</label><input id="bankOptionC" type="text"></div>
+                            <div><label for="bankOptionD">Đáp án D</label><input id="bankOptionD" type="text"></div>
+                        </div>
+                        <label for="bankCorrectOption">Đáp án đúng</label>
+                        <select id="bankCorrectOption">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                        <div class="builder-actions">
+                            <button class="ghost-btn" id="cancelBankEditButton" type="button" hidden>Hủy sửa</button>
+                            <button class="primary-btn" type="submit" id="bankSubmitButton">Lưu vào ngân hàng</button>
+                        </div>
+                        <div class="feedback" id="bankFeedback"></div>
+                    </form>
+                </div>
+                <div>
+                    <h2>Kho câu hỏi sẵn có</h2>
+                    <div class="bank-scroll" id="bankList"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel section-pad" style="margin-top:22px;">
+            <h2>Đề thi hiện có và bảng điểm</h2>
+            {% if quizzes_data %}
+                {% for quiz in quizzes_data %}
+                    <details class="quiz-card" {% if loop.first %}open{% endif %}>
+                        <summary>
+                            <div class="summary-row">
+                                <div>
+                                    <h3>{{ quiz.title }}</h3>
+                                    <div class="meta-text">
+                                        <span class="pill">Mã phòng: {{ quiz.join_code }}</span>
+                                        <span class="pill">{{ quiz.time_limit }} phút</span>
+                                        <span class="pill">{{ quiz.question_count }} câu hỏi</span>
+                                        <span class="pill">{{ quiz.attempt_count }} lượt nộp</span>
+                                    </div>
+                                </div>
+                                <div class="pill is-neutral">{% if quiz.average_score is not none %}Điểm TB: {{ "%.2f"|format(quiz.average_score) }}{% else %}Chưa có bài nộp{% endif %}</div>
+                            </div>
+                        </summary>
+                        <div class="section-pad" style="padding-top:0;">
+                            <div class="quiz-actions">
+                                <div></div>
+                                <div>
+                                    <button class="ghost-btn" type="button" onclick="loadQuizForEdit({{ quiz.id }})">Sửa</button>
+                                    <button class="danger-btn" type="button" onclick="deleteQuiz({{ quiz.id }}, {{ quiz.title|tojson }})">Xóa</button>
+                                </div>
+                            </div>
+                            <div class="content-grid" style="margin-top:16px;">
+                                <section class="box">
+                                    <h3>Câu hỏi trong đề</h3>
+                                    {% for question in quiz.questions %}
+                                        <article class="question-item">
+                                            <h3>Câu {{ loop.index }}</h3>
+                                            <div>{{ question.content }}</div>
+                                            <div class="choice-line">A. {{ question.option_a }}</div>
+                                            <div class="choice-line">B. {{ question.option_b }}</div>
+                                            <div class="choice-line">C. {{ question.option_c }}</div>
+                                            <div class="choice-line">D. {{ question.option_d }}</div>
+                                            <div><strong>Đáp án đúng:</strong> {{ question.correct_option }}</div>
+                                        </article>
+                                    {% endfor %}
+                                </section>
+                                <section class="box">
+                                    <h3>Kết quả sinh viên</h3>
+                                    {% if quiz.results %}
+                                        <table>
+                                            <thead><tr><th>Sinh viên</th><th>Mã SV</th><th>Điểm</th><th>Đúng/Tổng</th><th>Cảnh báo</th><th>Thời gian nộp</th></tr></thead>
+                                            <tbody>
+                                                {% for result in quiz.results %}
+                                                    <tr><td>{{ result.student_name }}</td><td>{{ result.student_code }}</td><td>{{ "%.2f"|format(result.score or 0) }}</td><td>{{ result.correct_count }}/{{ result.total_questions }}</td><td>{{ result.cheat_count }}</td><td>{{ result.submitted_at }}</td></tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p class="empty">Chưa có sinh viên nào nộp bài cho đề thi này.</p>
+                                    {% endif %}
+                                </section>
+                            </div>
+                        </div>
+                    </details>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Chưa có đề thi nào. Hãy tạo đề đầu tiên bằng form ở trên.</p>
+            {% endif %}
+        </section>
+    </div>
+    <script>
+        const quizzesData = {{ quizzes_data|tojson }};
+        const questionBankData = {{ question_bank_data|tojson }};
+        const questionContainer = document.getElementById("questionContainer");
+        const bankPicker = document.getElementById("bankPicker");
+        const bankList = document.getElementById("bankList");
+        const addQuestionButton = document.getElementById("addQuestionButton");
+        const addRandomQuestionSetButton = document.getElementById("addRandomQuestionSetButton");
+        const cancelEditButton = document.getElementById("cancelEditButton");
+        const quizBuilder = document.getElementById("quizBuilder");
+        const builderTitle = document.getElementById("builderTitle");
+        const editingQuizIdInput = document.getElementById("editingQuizId");
+        const submitButton = document.getElementById("submitButton");
+        const formFeedback = document.getElementById("formFeedback");
+        const bankForm = document.getElementById("bankForm");
+        const bankFormTitle = document.getElementById("bankFormTitle");
+        const editingBankIdInput = document.getElementById("editingBankId");
+        const bankSubmitButton = document.getElementById("bankSubmitButton");
+        const bankFeedback = document.getElementById("bankFeedback");
+        const cancelBankEditButton = document.getElementById("cancelBankEditButton");
+
+        function setFeedback(target, message, type = "") {
+            target.textContent = message;
+            target.className = type ? `feedback ${type}` : "feedback";
+        }
+
+        function refreshQuestionLabels() {
+            document.querySelectorAll(".question-editor").forEach((editor, index) => {
+                editor.querySelector(".question-index").textContent = `Câu hỏi ${index + 1}`;
+            });
+        }
+
+        function createQuestionEditor(data = {}) {
+            const wrapper = document.createElement("section");
+            const sourceLabel = data.category ? `${data.category} • ${data.difficulty || "Cơ bản"}` : "Câu hỏi tự soạn";
+            wrapper.className = "question-editor";
+            wrapper.innerHTML = `
+                <div class="question-head">
+                    <div>
+                        <div class="question-index">Câu hỏi</div>
+                        <span class="pill is-neutral">${sourceLabel}</span>
+                    </div>
+                    <button class="danger-btn remove-question" type="button">Xóa</button>
+                </div>
+                <label>Nội dung câu hỏi</label>
+                <textarea class="question-content" placeholder="Nhập nội dung câu hỏi">${data.content || ""}</textarea>
+                <div class="row-2">
+                    <div><label>Đáp án A</label><input class="option-a" type="text" value="${data.option_a || ""}"></div>
+                    <div><label>Đáp án B</label><input class="option-b" type="text" value="${data.option_b || ""}"></div>
+                </div>
+                <div class="row-2">
+                    <div><label>Đáp án C</label><input class="option-c" type="text" value="${data.option_c || ""}"></div>
+                    <div><label>Đáp án D</label><input class="option-d" type="text" value="${data.option_d || ""}"></div>
+                </div>
+                <label>Đáp án đúng</label>
+                <select class="correct-option">
+                    <option value="A" ${data.correct_option === "A" ? "selected" : ""}>A</option>
+                    <option value="B" ${data.correct_option === "B" ? "selected" : ""}>B</option>
+                    <option value="C" ${data.correct_option === "C" ? "selected" : ""}>C</option>
+                    <option value="D" ${data.correct_option === "D" ? "selected" : ""}>D</option>
+                </select>
+            `;
+            questionContainer.appendChild(wrapper);
+            refreshQuestionLabels();
+        }
+
+        function resetBuilder() {
+            editingQuizIdInput.value = "";
+            builderTitle.textContent = "Tạo đề thi mới";
+            submitButton.textContent = "Tạo đề thi";
+            cancelEditButton.hidden = true;
+            document.getElementById("title").value = "";
+            document.getElementById("joinCode").value = "";
+            document.getElementById("timeLimit").value = "15";
+            questionContainer.innerHTML = "";
+            createQuestionEditor();
+            createQuestionEditor();
+            setFeedback(formFeedback, "");
+        }
+
+        function buildPayload() {
+            const title = document.getElementById("title").value.trim();
+            const joinCode = document.getElementById("joinCode").value.trim();
+            const timeLimit = document.getElementById("timeLimit").value;
+            const questions = [...document.querySelectorAll(".question-editor")].map((editor) => ({
+                content: editor.querySelector(".question-content").value.trim(),
+                option_a: editor.querySelector(".option-a").value.trim(),
+                option_b: editor.querySelector(".option-b").value.trim(),
+                option_c: editor.querySelector(".option-c").value.trim(),
+                option_d: editor.querySelector(".option-d").value.trim(),
+                correct_option: editor.querySelector(".correct-option").value
+            }));
+            if (!title) {
+                setFeedback(formFeedback, "Bạn cần nhập tên đề thi.", "error");
+                return null;
+            }
+            if (questions.length === 0) {
+                setFeedback(formFeedback, "Cần ít nhất 1 câu hỏi.", "error");
+                return null;
+            }
+            return { title, join_code: joinCode, time_limit: Number(timeLimit), questions };
+        }
+
+        function fillRandomQuestionSet() {
+            if (!questionBankData.length) {
+                setFeedback(formFeedback, "Ngân hàng câu hỏi đang trống, chưa thể tạo bộ 15 câu.", "error");
+                return;
+            }
+
+            const shuffled = [...questionBankData].sort(() => Math.random() - 0.5);
+            const selectedQuestions = shuffled.slice(0, Math.min(15, shuffled.length));
+            questionContainer.innerHTML = "";
+            selectedQuestions.forEach((item) => createQuestionEditor(item));
+            setFeedback(formFeedback, `Đã nạp ${selectedQuestions.length} câu hỏi từ ngân hàng vào đề thi.`, "success");
+        }
+
+        function loadQuizForEdit(quizId) {
+            const quiz = quizzesData.find((item) => item.id === quizId);
+            if (!quiz) return;
+            editingQuizIdInput.value = String(quiz.id);
+            builderTitle.textContent = `Sửa đề thi: ${quiz.title}`;
+            submitButton.textContent = "Cập nhật đề thi";
+            cancelEditButton.hidden = false;
+            document.getElementById("title").value = quiz.title;
+            document.getElementById("joinCode").value = quiz.join_code;
+            document.getElementById("timeLimit").value = String(quiz.time_limit);
+            questionContainer.innerHTML = "";
+            quiz.questions.forEach((question) => createQuestionEditor(question));
+            setFeedback(formFeedback, "Đã nạp đề thi lên form chỉnh sửa.", "success");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        async function deleteQuiz(quizId, quizTitle) {
+            if (!window.confirm(`Bạn chắc chắn muốn xóa đề thi "${quizTitle}"?`)) return;
+            try {
+                const response = await fetch(`/api/teacher/quizzes/${quizId}`, { method:"DELETE" });
+                const payload = await response.json();
+                if (payload.status !== "success") throw new Error(payload.message || "Không thể xóa đề thi.");
+                window.location.reload();
+            } catch (error) {
+                setFeedback(formFeedback, error.message || "Có lỗi xảy ra khi xóa đề thi.", "error");
+            }
+        }
+
+        function fillBankForm(item = null) {
+            editingBankIdInput.value = item ? String(item.id) : "";
+            bankFormTitle.textContent = item ? `Sửa câu hỏi ngân hàng #${item.id}` : "Ngân hàng câu hỏi";
+            bankSubmitButton.textContent = item ? "Cập nhật câu hỏi" : "Lưu vào ngân hàng";
+            cancelBankEditButton.hidden = !item;
+            document.getElementById("bankContent").value = item?.content || "";
+            document.getElementById("bankCategory").value = item?.category || "";
+            document.getElementById("bankDifficulty").value = item?.difficulty || "Cơ bản";
+            document.getElementById("bankOptionA").value = item?.option_a || "";
+            document.getElementById("bankOptionB").value = item?.option_b || "";
+            document.getElementById("bankOptionC").value = item?.option_c || "";
+            document.getElementById("bankOptionD").value = item?.option_d || "";
+            document.getElementById("bankCorrectOption").value = item?.correct_option || "A";
+            setFeedback(bankFeedback, "");
+        }
+
+        function renderBankPicker() {
+            if (!questionBankData.length) {
+                bankPicker.innerHTML = `<div class="empty">Ngân hàng câu hỏi chưa có dữ liệu.</div>`;
+                return;
+            }
+            bankPicker.innerHTML = questionBankData.map((item) => `
+                <article class="picker-card">
+                    <div class="question-head">
+                        <span class="pill">${item.category}</span>
+                        <span class="pill is-neutral">${item.difficulty}</span>
+                    </div>
+                    <h3>${item.content}</h3>
+                    <div class="meta-text">Đáp án đúng: ${item.correct_option}</div>
+                    <div class="bank-actions" style="margin-top:12px;">
+                        <span class="meta-text">Mã câu hỏi #${item.id}</span>
+                        <button class="ghost-btn add-bank-to-quiz" type="button" data-id="${item.id}">Thêm vào đề</button>
+                    </div>
+                </article>
+            `).join("");
+        }
+
+        function renderBankList() {
+            if (!questionBankData.length) {
+                bankList.innerHTML = `<div class="empty">Chưa có câu hỏi nào trong ngân hàng.</div>`;
+                return;
+            }
+            bankList.innerHTML = questionBankData.map((item) => `
+                <article class="bank-card">
+                    <div class="question-head">
+                        <div>
+                            <span class="pill">${item.category}</span>
+                            <span class="pill is-neutral">${item.difficulty}</span>
+                        </div>
+                        <span class="meta-text">#${item.id}</span>
+                    </div>
+                    <h3>${item.content}</h3>
+                    <div class="choice-line">A. ${item.option_a}</div>
+                    <div class="choice-line">B. ${item.option_b}</div>
+                    <div class="choice-line">C. ${item.option_c}</div>
+                    <div class="choice-line">D. ${item.option_d}</div>
+                    <div class="meta-text">Đáp án đúng: ${item.correct_option} | Tạo lúc: ${item.created_at}</div>
+                    <div class="bank-actions" style="margin-top:12px;">
+                        <button class="ghost-btn add-bank-to-quiz" type="button" data-id="${item.id}">Thêm vào đề</button>
+                        <div>
+                            <button class="ghost-btn edit-bank-item" type="button" data-id="${item.id}">Sửa</button>
+                            <button class="danger-btn delete-bank-item" type="button" data-id="${item.id}">Xóa</button>
+                        </div>
+                    </div>
+                </article>
+            `).join("");
+        }
+
+        addQuestionButton.addEventListener("click", () => createQuestionEditor());
+        addRandomQuestionSetButton.addEventListener("click", fillRandomQuestionSet);
+        cancelEditButton.addEventListener("click", resetBuilder);
+        cancelBankEditButton.addEventListener("click", () => fillBankForm());
+
+        questionContainer.addEventListener("click", (event) => {
+            if (!event.target.classList.contains("remove-question")) return;
+            const editor = event.target.closest(".question-editor");
+            if (editor) {
+                editor.remove();
+                refreshQuestionLabels();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const addButton = event.target.closest(".add-bank-to-quiz");
+            if (addButton) {
+                const item = questionBankData.find((entry) => entry.id === Number(addButton.dataset.id));
+                if (item) {
+                    createQuestionEditor(item);
+                    setFeedback(formFeedback, `Đã thêm câu hỏi #${item.id} vào đề thi.`, "success");
+                }
+                return;
+            }
+
+            const editButton = event.target.closest(".edit-bank-item");
+            if (editButton) {
+                const item = questionBankData.find((entry) => entry.id === Number(editButton.dataset.id));
+                if (item) {
+                    fillBankForm(item);
+                    window.scrollTo({ top: document.body.scrollHeight * 0.35, behavior: "smooth" });
+                }
+                return;
+            }
+
+            const deleteButton = event.target.closest(".delete-bank-item");
+            if (deleteButton) {
+                const bankId = Number(deleteButton.dataset.id);
+                const item = questionBankData.find((entry) => entry.id === bankId);
+                if (!item || !window.confirm(`Xóa câu hỏi #${bankId} khỏi ngân hàng?`)) return;
+                fetch(`/api/teacher/question-bank/${bankId}`, { method:"DELETE" })
+                    .then((response) => response.json())
+                    .then((payload) => {
+                        if (payload.status !== "success") throw new Error(payload.message || "Không thể xóa câu hỏi.");
+                        window.location.reload();
+                    })
+                    .catch((error) => setFeedback(bankFeedback, error.message || "Có lỗi xảy ra khi xóa câu hỏi.", "error"));
+            }
+        });
+
+        quizBuilder.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const payload = buildPayload();
+            if (!payload) return;
+            const editingQuizId = editingQuizIdInput.value.trim();
+            const method = editingQuizId ? "PUT" : "POST";
+            const url = editingQuizId ? `/api/teacher/quizzes/${editingQuizId}` : "/api/teacher/quizzes";
+            submitButton.disabled = true;
+            setFeedback(formFeedback, editingQuizId ? "Đang cập nhật đề thi..." : "Đang tạo đề thi...", "success");
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers:{ "Content-Type":"application/json" },
+                    body:JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.status !== "success") throw new Error(result.message || "Không lưu được đề thi.");
+                window.location.reload();
+            } catch (error) {
+                submitButton.disabled = false;
+                setFeedback(formFeedback, error.message || "Có lỗi xảy ra khi lưu đề thi.", "error");
+            }
+        });
+
+        bankForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const payload = {
+                content: document.getElementById("bankContent").value.trim(),
+                category: document.getElementById("bankCategory").value.trim(),
+                difficulty: document.getElementById("bankDifficulty").value,
+                option_a: document.getElementById("bankOptionA").value.trim(),
+                option_b: document.getElementById("bankOptionB").value.trim(),
+                option_c: document.getElementById("bankOptionC").value.trim(),
+                option_d: document.getElementById("bankOptionD").value.trim(),
+                correct_option: document.getElementById("bankCorrectOption").value
+            };
+            const editingBankId = editingBankIdInput.value.trim();
+            const method = editingBankId ? "PUT" : "POST";
+            const url = editingBankId ? `/api/teacher/question-bank/${editingBankId}` : "/api/teacher/question-bank";
+            bankSubmitButton.disabled = true;
+            setFeedback(bankFeedback, editingBankId ? "Đang cập nhật câu hỏi..." : "Đang lưu câu hỏi...", "success");
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers:{ "Content-Type":"application/json" },
+                    body:JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.status !== "success") throw new Error(result.message || "Không lưu được câu hỏi.");
+                window.location.reload();
+            } catch (error) {
+                bankSubmitButton.disabled = false;
+                setFeedback(bankFeedback, error.message || "Có lỗi xảy ra khi lưu câu hỏi.", "error");
+            }
+        });
+
+        renderBankPicker();
+        renderBankList();
+        fillBankForm();
+        resetBuilder();
+        window.loadQuizForEdit = loadQuizForEdit;
+        window.deleteQuiz = deleteQuiz;
+    </script>
+</body>
+</html>
